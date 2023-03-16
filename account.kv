@@ -1,0 +1,611 @@
+#: kivy 2.1.0
+## ------------------------------------------------------------------
+## - Font settings in general. All used fonts to be defined here    -
+## ------------------------------------------------------------------
+#:set fn_title "./fonts/Ubuntu-B.ttf"
+#:set fs_title 20
+
+#:set fn_subtitle "./fonts/Ubuntu-B.ttf"
+#:set fs_subtitle 16
+
+#:set fn_subsubtitle "./fonts/Ubuntu-B.ttf"
+#:set fs_subsubtitle 14
+
+#:set fn_button "./fonts/Ubuntu-BI.ttf"
+#:set fs_button 13
+
+#:set fn_text "./fonts/Ubuntu-C.ttf"
+#:set fs_text 13
+
+#:set fn_data "./fonts/Ubuntu-LI.ttf"
+#:set fs_data 12
+
+## ------------------------------------------------------------------
+## - Filelinks to be used globally:                                 -
+## ------------------------------------------------------------------
+
+## :set background_image "./images/MinimalIndustrySurf-02STRWP.jpg"
+#:set background_image "./images/RenderArt-StoneWallSTRWP.jpg"
+#:set phimage_link "./icons/caution.png"
+#:set lines 12
+#:set base_button_color (0.4, 0.4, 0.6, 0.8)
+#:set base_table_color (0, 0.5, 1, 0.05)
+#:set rootpath_utxo "./Erklaerungen"   ## set <path> to define the starting point
+#:set path_utxo "./Erklaerungen"
+
+## ----------------------------------------------------------------------------------------------
+## transitions imported for screenchanges:
+## ----------------------------------------------------------------------------------------------
+#:import NoTransition kivy.uix.screenmanager.NoTransition
+## -----------------------------------------------------------------------------
+#:import CardTransition kivy.uix.screenmanager.CardTransition
+#:import FadeTransition kivy.uix.screenmanager.FadeTransition
+#:import FallOutTransition kivy.uix.screenmanager.FallOutTransition
+#:import RiseInTransition kivy.uix.screenmanager.RiseInTransition
+#:import SlideTransition kivy.uix.screenmanager.SlideTransition
+#:import SwapTransition kivy.uix.screenmanager.SwapTransition
+#:import WipeTransition kivy.uix.screenmanager.WipeTransition
+
+## ----------------------------------------------------------------------------------------------
+## Root Widget definition: ScreenManager                            ScreenManager       START   -
+## ----------------------------------------------------------------------------------------------
+
+AccScreenManager:
+    id: ThisIsYourROOTWidget
+    transition: SwapTransition()
+    canvas.before:
+        Color:
+            rgba: 0, 0, 0, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            source: background_image
+    ScreenIntro:
+        id: screen_intro
+    ScreenPos:
+        id: screen_pos
+    ScreenSum:
+        id: screen_sum
+
+<InScreenWindow@BoxLayout>:
+    orientation: "vertical"
+
+<ScreenIntro@Screen>:
+    name: "screen_intro"
+    InScreenWindow:
+        TitleLine:
+            id: screen_intro_titleline
+            size_hint: 1, 0.1                      ##  0.05
+            display_title: "Sziller's Accounting App"
+        OpAreaIntro:
+            size_hint: 1, 0.85                       ##  0.9     < 1
+            id: opareaintro
+        Ribbon:
+            id: ribbon
+            size_hint: 1, 0.05
+            text_ribbon: "---"
+            image_source: phimage_link
+
+<ScreenPos@Screen>:
+    name: "screen_pos"
+    InScreenWindow:
+        TitleLine:
+            id: screen_pos_titleline
+            size_hint: 1, 0.1                      ##  0.05
+            display_title: "Invoice Sheet"
+        OpAreaPos:
+            size_hint: 1, 0.85                       ##  0.9     < 1
+            id: opareapos
+        Ribbon:
+            id: ribbon
+            size_hint: 1, 0.05
+            text_ribbon: "---"
+            image_source: phimage_link
+
+<ScreenSum@Screen>:
+    name: "screen_sum"
+    InScreenWindow:
+        TitleLine:
+            id: screen_sum_titleline
+            size_hint: 1, 0.1                      ##  0.05
+            display_title: "Summarize"
+        OpAreaSum:
+            size_hint: 1, 0.85                       ##  0.9     < 1
+            id: opareasum
+        Ribbon:
+            id: ribbon
+            size_hint: 1, 0.05
+            text_ribbon: "---"
+            image_source: phimage_link
+
+<OpAreaIntro@OperationAreaBox>:
+    id: opareaintro
+    BoxLayout:
+        padding: 15
+        spacing: 5
+        orientation: "vertical"
+        LblInfo:
+            id: msg_opareaintro
+            size_hint: 1, 0.05
+            text: "Finalize basic settings!"
+        BoxLayout:
+            id: nameline
+            size_hint: 1, 0.05
+            orientation: "horizontal"
+            LblBasic:
+                size_hint: 0.25, 1
+                text:
+                    "name:"
+            TextInputPos:
+                id: txt_nameline
+                size_hint: 0.75, 1
+                hint_text: "name"
+        BoxLayout:
+            id: yearline
+            size_hint: 1, 0.05
+            orientation: "horizontal"
+            LblBasic:
+                size_hint: 0.25, 1
+                text:
+                    "year:"
+            TextInputPos:
+                id: txt_yearline
+                size_hint: 0.75, 1
+                hint_text: "year"
+        ToggleLock:
+            size_hint: 1, 0.05
+            state: "normal"
+            text: "Click to accept!"
+            on_state: root.btnclck_dataconfirm(self)
+        FileChooserListView:
+            id: filechooser_utxo
+            size_hint: 1, 0.2
+            disabled: False
+            name: "filechooser_utxo"
+            pos_hint: {"center_y": 0.5}
+            rootpath: rootpath_utxo   ## set <path> to define the starting point
+            path: path_utxo
+            on_selection: root.on_fileclick(self)
+        ButtonConfirm:
+            id: btn_load
+            size_hint: 1, 0.1
+            disabled: True
+            text: "Load"
+            on_release: root.btnclck_load()
+        ButtonConfirm:
+            id: btn_calc
+            size_hint: 1, 0.1
+            disabled: True
+            text: "Calculate"
+            on_release: root.btnclck_calc()
+        BoxLayout:
+            id: titleline
+            size_hint: 1, 0.05
+            canvas.before:
+                Color:
+                    rgba: base_table_color
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            orientation: "horizontal"
+            LblTableHead:
+                size_hint: (0.3, 1)
+                text:
+                    "party"
+            LblTableHead:
+                size_hint: (0.3, 1)
+                text:
+                    "nr"
+            LblTableHead:
+                size_hint: (0.3, 1)
+                text:
+                    "sum"
+            LblTableHead:
+                size_hint: (0.1, 1)
+                text:
+                    "del"
+        ScrollView:
+            id: scrlv
+            size_hint: 1, 0.4
+            canvas.before:
+                Color:
+                    rgba: base_table_color
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            size_hint: 1, 0.4
+            TXdisplay:
+                height: max(self.minimum_height, scrlv.height)
+                id: txdisplay
+                size_hint: 1, None
+        BoxLayout:
+            size_hint: 1, 0.05
+            orientation: "horizontal"
+            ButtonConfirm:
+                id: btn_add_amend
+                reset: False
+                size_hint: 0.5, 1
+                disabled: True
+                text: "add - amended"
+                on_release: txdisplay.btnclck_tx_add(self)
+            ButtonConfirm:
+                id: btn_add_clean
+                reset: True
+                size_hint: 0.5, 1
+                disabled: True
+                text: "add - clean"
+                on_release: txdisplay.btnclck_tx_add(self)
+
+<OpAreaSum@OperationAreaBox>:
+    BoxLayout:
+        padding: 15
+        spacing: 5
+        orientation: "vertical"
+        ScrollView:
+            id: scrlv
+            size_hint: 1, 0.6
+            canvas.before:
+                Color:
+                    rgba: base_table_color
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            Label:
+                # height: max(self.minimum_height, scrlv.height)
+                id: txt_summary
+                size_hint: 1, None
+                text: "N/A"
+        ButtonCommand:
+            id: btn_screen_intro
+            size_hint: 1, 0.1
+            text: "modify invoice set"
+            on_release: root.btnclck_screen_intro()
+        ButtonCommand:
+            id: btn_extract_save
+            size_hint: 1, 0.1
+            text: "Save summary"
+            on_release: root.btnclck_save()
+        ButtonConfirm:
+            id: btn_extract_summary
+            size_hint: 1, 0.2
+            text: "Generate summary"
+            on_release: root.btnclck_summary(self)
+
+
+
+<OpAreaPos@OperationAreaBox>:
+    BoxLayout:
+        padding: 15
+        spacing: 5
+        orientation: "vertical"
+        LblInfo:
+            size_hint: 1, 0.1
+            text: "Fill in data. Add to database when ready."
+        PosRow:
+            id: row_traced
+            LabelPos:
+                text: "Traced"
+            ToggleButtonPos:
+                id: toggle_traced
+                state: "normal"
+                text: "Invoice"
+                on_state: root.on_togglestate_traced(self)
+        PosRow:
+            id: row_value
+            LabelPos:
+                text: "Value"
+            TextInputPos:
+                id: txt_payedsum
+                size_hint: 0.48, 1
+                hint_text: "payed sum"
+            SpinnerPosDate:
+                id: spinn_curr
+                text: "EUR"
+                values: ['EUR', 'HUF', 'BTC']
+                on_text:
+        PosRow:
+            id: row_pier
+            LabelPos:
+                text: "Pier"
+            TextInputPos:
+                id: txt_pier
+                multiline: False
+                hint_text: "enter company name"
+                on_text: root.on_textupdate_pier(self)
+        PosRow:
+            id: row_loc
+            LabelPos:
+                text: "Home / EU"
+            ToggleButtonPos:
+                text: "Inland"
+                on_state: root.on_togglestate_loc(self)
+        PosRow:
+            id: row_paymeth
+            LabelPos:
+                text: "Pay method"
+            SpinnerPosCat:
+                id: spinn_meth
+                text: "pick method"
+                values: []
+                on_text:
+        PosRow:
+            id: row_categ
+            LabelPos:
+                text: "Category"
+            SpinnerPosCat:
+                id: spinn_cat
+                text: "pick category"
+                values: []
+                on_text:
+        PosRow:
+            id: row_paydate
+            LabelPos:
+                text: "Date: Payment"
+            TextInputPos:
+                id: txt_paydate
+                size_hint: 0.72, 1
+                hint_text: "enter date of payment"
+                multiline: False
+        PosRow:
+            id: row_invdate
+            LabelPos:
+                text: "Date: Invoice"
+            TextInputPos:
+                id: txt_invdate
+                size_hint: 0.42, 1
+                hint_text: "enter date of invoice"
+                multiline: False
+            BtnInrow:
+                id: btn_samedate
+                size_hint: 0.30, 1
+                text: "on payment"
+                on_release: root.btnclck_datecopy()
+        PosRow:
+            id: row_invnr
+            LabelPos:
+                text: "Invoice ID"
+            TextInputPos:
+                id: txt_invnr
+                hint_text: "enter invoice identificator"
+                multiline: False
+                on_text: root.on_textupdate_invid(self)
+        Label:
+            size_hint: 1, 0.5/lines
+        BoxLayout:
+            orientation:"horizontal"
+            size_hint: 1, 1/(lines + 1)
+            ButtonConfirm:
+                size_hint: 0.5, 1
+                text: "cancel"
+                on_release: root.on_release_cancel()
+            ButtonConfirm:
+                size_hint: 0.5, 1
+                text: "Add to database"
+                on_release: root.on_release_confirm()
+
+<TitleLine@BoxLayout>:
+    display_title: "default"
+    orientation: "horizontal"
+    ScreenTitleLabel:
+        font_name: fn_title
+        font_size: fs_title
+        text: root.display_title
+
+<Ribbon@BoxLayout>:
+    text_ribbon: "---"
+    image_source: None
+    orientation: "horizontal"
+    Button:
+        size_hint: 0.2, 1
+        text: "check"
+        on_release: app.testfunction()
+    Label:
+        id: lbl_ribbon
+        halign: 'right'  ## center, right, left
+        valign: 'middle'  ## middle, top, bottom
+        font_name: fn_button
+        font_size: fs_button
+        size_hint: 0.60, 1
+        text_size: self.size
+        padding: (10, 0)
+        text: root.text_ribbon
+    Label:
+        id: lbl_sign
+        halign: 'right'  ## center, right, left
+        valign: 'middle'  ## middle, top, bottom
+        font_name: fn_button
+        font_size: fs_button
+        size_hint: 0.15, 1
+        text_size: self.size
+        padding: (10, 0)
+        text: "Sziller"
+    AsyncImage:
+        keep_ratio: True
+        allow_stretch: False
+        size_hint: 0.05, 1
+        source: root.image_source
+
+#   ---------------------------------------------------------------------
+#   - Label:                                                    START   -
+#   ---------------------------------------------------------------------
+
+<ButtonClr@Button>:
+    background_color: base_button_color
+
+<ToggleClr@ToggleButton>:
+    background_color: base_button_color
+
+<SpinnerClr@Spinner>:
+    background_color: base_button_color
+
+
+
+<ScreenTitleLabel@Label>:
+    font_size: fs_title
+    font_name: fn_title
+
+<LabelPos@Label>:
+    size_hint: 0.28, 1
+    font_size: fs_subsubtitle
+    font_name: fn_subsubtitle
+    text_size: self.size
+    halign: 'left'  ## center, right, left
+    valign: 'middle'  ## middle, top, bottom
+
+
+<SpinnerPosDate@SpinnerClr>:
+    size_hint: 0.24, 1
+    font_size: fs_button
+    font_name: fn_button
+
+<SpinnerPosCat@SpinnerClr>:
+    size_hint: 0.72, 1
+    font_size: fs_button
+    font_name: fn_button
+
+<ToggleButtonPos@ToggleClr>:
+    size_hint: 0.72, 1
+    font_size: fs_button
+    font_name: fn_button
+
+<PosRow@BoxLayout>:
+    disabled: False
+    size_hint: 1, 1/(lines + 1)
+    orientation: "horizontal"
+
+<TextInputPos@TextInput>:
+    size_hint: 0.72, 1
+    font_name: fn_subtitle
+    font_size: fs_subtitle
+    text_size: self.size
+    ## line_height: 40
+    multiline: False
+    focus: True
+    hint_text: "enter text"
+    padding_x: 10
+    # padding_y: [self.height / 2.0 - (self.line_height / 2.0) * len(self._lines), 0]
+    padding_y: [self.height / 2.0 - (self.line_height / 2.0), 0]
+    foreground_color: (1,1,1,1)
+    background_color: (0,0,0,0.4)
+    cursor_color: (1,1,1,1)
+    halign: 'left'  ## center, right, left
+    valign: 'middle'  ## middle, top, bottom
+
+#   ---------------------------------------------------------------------
+#   - Button:                                                   START   -
+#   ---------------------------------------------------------------------
+
+<ButtonConfirm@ButtonClr>:
+    font_size: fs_button
+    font_name: fn_button
+    text_size: self.size
+    halign: 'center'  ## center, right, left
+    valign: 'middle'  ## middle, top, bottom
+
+<ButtonCommand@ButtonClr>:
+    font_size: fs_subtitle
+    font_name: fn_subtitle
+    text_size: self.size
+    halign: 'center'  ## center, right, left
+    valign: 'middle'  ## middle, top, bottom
+
+<ToggleLock@ToggleClr>:
+    # size_hint: 1, 1.5 / lines
+    font_size: fs_button
+    font_name: fn_button
+    text_size: self.size
+    halign: 'center'  ## center, right, left
+    valign: 'middle'  ## middle, top, bottom
+
+<ButtonScreenNav@Button>:
+    font_name: fn_button
+    font_size: fs_button
+    background_color: 0.3, 0.4, 0.3, 0.45
+    target: ""
+    text_size: self.size
+    color: (1, 1, 1)
+    padding: (2, 2)
+    text: "ToggleButton"
+    halign: 'center'  ## center, right, left
+    valign: 'middle'  ## middle, top, bottom
+
+<BtnInrow@Button>:
+    font_name: fn_button
+    font_size: fs_button
+    background_color: 0.3, 0.4, 0.3, 0.45
+    target: ""
+    text_size: self.size
+    color: (1, 1, 1)
+    padding: (2, 2)
+    text: "ToggleButton"
+    halign: 'center'  ## center, right, left
+    valign: 'middle'  ## middle, top, bottom
+
+#   ---------------------------------------------------------------------
+#   - Button:                                                   ENDED   -
+#   ---------------------------------------------------------------------
+
+#   ---------------------------------------------------------------------
+#   - Label:                                                    START   -
+#   ---------------------------------------------------------------------
+
+<ScreenTitleLabel@Label>:
+    font_size: fs_title
+    font_name: fn_title
+
+<LabelPH@Label>:
+
+<LblBasic@Label>:
+    font_size: fs_text
+    font_name: fn_text
+    text_size: self.size
+    halign: 'left'  ## center, right, left
+    valign: 'center'  ## middle, top, bottom
+
+<LblInfo@Label>:
+    canvas.before:
+        Color:
+            rgba: 0, 0, 0, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    color: 1, 1, 1, 1
+    font_size: fs_subsubtitle
+    font_name: fn_subsubtitle
+    text_size: self.size
+    halign: 'center'  ## center, right, left
+    valign: 'center'  ## middle, top, bottom
+
+
+
+<LblTableHead@Label>:
+    font_size: fs_subsubtitle
+    font_name: fn_subsubtitle
+    text_size: self.size
+    halign: 'center'  ## center, right, left
+    valign: 'center'  ## middle, top, bottom
+
+<TextInParagraph@TextInput>:
+    font_name: fn_data
+    font_size: fs_data
+    text_size: self.size
+    line_height: 40
+    focus: True
+    hint_text: "enter project name"
+    padding: (2, 2)
+    foreground_color: (1,1,1,1)
+    background_color: (1,1,1,0.2)
+    cursor_color: (1,1,1,1)
+    halign: 'left'  ## center, right, left
+    valign: 'middle'  ## middle, top, bottom
+
+#   ---------------------------------------------------------------------
+#   - FileChooserListView:                                      START   -
+#   ---------------------------------------------------------------------
+
+<FileChooserListView>:
+    canvas.before:
+        Color:
+            rgba: 0.15, 0.15, 0.15, 1
+        Rectangle:
+            size: self.size

@@ -1,0 +1,7 @@
+.idea/
+.idea/workspace.xml
+__pycache__/
+settings/
+venv/
+
+Erklaerung_*/

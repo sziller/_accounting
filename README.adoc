@@ -1,3 +1,9 @@
-# Accounting
+= Accounting
 
 Accounting software for private purposes.
+Testing root repo if
+
+- github or
+- bitbucket
+
+All private docs stored in private repo!

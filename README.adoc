@@ -1,9 +1,31 @@
-= Accounting
+[[Accounting]]
+= Accounting app to track invoices
+Szilard Gabor LADANYI <szillerke@gmail.com>
+// include::.asciidoctorconfig[]
+:icons: image
+:iconsdir: ./icons
+:sectnums!:
+:doctype: book
+:author: Szilard Gabor LADANYI
+:hide-uri-scheme: true
+:description: Accounting software to track and archive invoices
+:toc: left
+:toclevels: 3
+:toc-title: Table of contents
+:stylesheet: adoc-github.css
+:stylesdir: ./css
+:figure-caption:
+:imagesdir: ./images/
 
 Accounting software for private purposes.
-Testing root repo if
+Root repo here, on Github as software is developed under open source copyright.
 
-- github or
-- bitbucket
+I recommend storing user data in a private repository. My invoice data is not public, I will however provide some
+examples enabling easy tests, tutorials and rehersal use.
 
-All private docs stored in private repo!
+[WARNING]
+====
+I do not take any responsibility for errors originating in using my software, or the information implied from it.
+There are hardcoded and file stored accounting rulez here that are not verified by any professional accountant.
+DO NOT TAKE ANYTHING ON FACE VALUE, check your legal duties based on your usecase and/or jurisdiction.
+====

@@ -1,0 +1,32 @@
+Honorarrechnung Nr.: 9101
+9. April 2031
+Example Issuer
+Example Street 1 Bankverbindung - Name of the Bank: Example Bank
+Ust-IdNr. - VATIN: DE123456789
+Herr Test Recipient Mr. Test Recipient
+Example Customer Ltd Example Customer Ltd
+Example Address 1
+Example Address 1
+Honorarrechnung Invoice
+Hiermit stelle ich Ihnen folgende Honorarrechnung:
+Vermerk: nicht umsatzsteuerpflichtig -
+Leistung an Kunden ausserhalb der EU
+Note: Not subject to German VAT -
+Service provided to non-EU client
+1st March 2031 -
+9th April 2031
+Einheit x Stundenhonorar
+Unit x Hourfee
+Example work 260.0 h x 50 usd/h 13 000 USD
+Deduct: 2 time fee 600 usd - 600 USD
+Nettohonorar – net amount: 12 400 USD
+Bruttohonorar
+(siehe Vermerk) – gross amount: (see Note) 12 400 USD
+Bitte überweisen Sie das Bruttohonorar innerhalb
+der nächsten 14 Tage,
+Please transfer the above gross amount in the coming
+14 days,
+Die Rechnung wurde elektronisch erstellt. Sie ist
+ohne Unterschrift gültig.
+Example Issuer
+9101

@@ -1,0 +1,21 @@
+<section
+        class="app-view is-active"
+        id="process-view"
+        aria-labelledby="show-process-view">
+
+    <div class="process-workspace">
+        <div class="process-left-column">
+            {% include "partials/ap/editor.html" %}
+        </div>
+
+        <aside
+                class="process-right-column"
+                aria-label="Source image and accounting entries">
+
+            {% include "partials/ap/source_image.html" %}
+            {% include "partials/ap/entries.html" %}
+        </aside>
+    </div>
+
+    {% include "partials/ap/processing.html" %}
+</section>

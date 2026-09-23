@@ -1,0 +1,63 @@
+accounting_app/
+├── README.md
+├── requirements.txt
+├── app
+│   ├── __init__.py
+│   ├── main.py
+│   ├── api.py
+│   ├── bootstrap.py
+│   │
+│   ├── core
+│   │   ├── config.py
+│   │   └── errors.py
+│   │
+│   ├── db
+│   │   ├── database.py
+│   │   ├── models.py
+│   │   └── repositories.py
+│   │
+│   ├── domain
+│   │   ├── enums.py
+│   │   ├── money.py
+│   │   └── transaction.py
+│   │
+│   ├── schemas
+│   │   └── transaction_schema.py
+│   │
+│   ├── engine
+│   │   ├── accounting_engine.py
+│   │   └── summary_engine.py
+│   │
+│   ├── services
+│   │   └── transaction_service.py
+│   │
+│   ├── routers
+│   │   ├── router_frontend.py
+│   │   ├── router_transactions.py
+│   │   └── router_summary.py
+│   │
+│   ├── static
+│   │   ├── css
+│   │   │   └── main.css
+│   │   └── js
+│   │       ├── api.js
+│   │       └── transactions.js
+│   │
+│   └── templates
+│       ├── base.html
+│       └── index.html
+│
+├── data
+│   └── .gitkeep
+│
+├── docs
+│   ├── architecture.adoc
+│   └── data_model.adoc
+│
+├── scripts
+│   └── init_db.py
+│
+└── tests
+    ├── test_money.py
+    ├── test_transaction_service.py
+    └── test_summary_engine.py

@@ -1,12 +1,12 @@
 [[Accounting]]
 = Accounting app to track invoices
-Szilard Gabor LADANYI <szillerke@gmail.com>
+Sziller
 // include::.asciidoctorconfig[]
 :icons: image
 :iconsdir: ./icons
 :sectnums!:
 :doctype: book
-:author: Szilard Gabor LADANYI
+:author: Sziller
 :hide-uri-scheme: true
 :description: Accounting software to track and archive invoices
 :toc: left
@@ -17,15 +17,23 @@ Szilard Gabor LADANYI <szillerke@gmail.com>
 :figure-caption:
 :imagesdir: ./images/
 
-Accounting software for private purposes.
-Root repo here, on Github as software is developed under open source copyright.
+Accounting software for private bookkeeping purposes.
 
-I recommend storing user data in a private repository. My invoice data is not public, I will however provide some
-examples enabling easy tests, tutorials and rehersal use.
+The root repository is hosted on GitHub, and the software is developed as an open-source project.
+
+User accounting data, invoices, receipts, database files, and other private records should be stored separately from the public source repository, preferably in a private repository or other suitably protected storage.
+
+The repository may include example data intended for tests, tutorials, demonstrations, and rehearsal use. Such example data should not contain real private accounting information.
 
 [WARNING]
 ====
-I do not take any responsibility for errors originating in using my software, or the information implied from it.
-There are hardcoded and file stored accounting rulez here that are not verified by any professional accountant.
-DO NOT TAKE ANYTHING ON FACE VALUE, check your legal duties based on your usecase and/or jurisdiction.
+This software is provided without any guarantee that its accounting logic, calculations, classifications, or stored rules are correct or suitable for a particular purpose.
+
+Accounting rules implemented in code or configuration files may be incomplete, outdated, jurisdiction-specific, or unverified by a professional accountant.
+
+Do not rely on the software or its output as authoritative accounting, tax, or legal advice.
+
+*Always verify applicable accounting, tax, reporting, and record-keeping obligations independently for the relevant use case and jurisdiction.*
+
 ====
+

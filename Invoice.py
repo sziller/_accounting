@@ -3,7 +3,6 @@ General accounting software
 """
 import collections as Coll
 import yaml
-from kivy.core.window import Window
 from FileProcessing import FileRelatedOperations as FiRO
 from WindowRelated import UserPrompts as UsPr
 

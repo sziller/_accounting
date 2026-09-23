@@ -1,0 +1,27 @@
+<h3>Payments / Allocations</h3>
+
+<ul id="ar-allocation-list"></ul>
+
+<form id="ar-allocation-form" class="form-grid">
+    <label>
+        Incoming payment
+        <select id="ar-allocation-payment"></select>
+    </label>
+
+    <p id="ar-allocation-remaining"></p>
+
+    <label>
+        Allocated amount
+        <input
+                id="ar-allocation-amount"
+                type="text"
+                inputmode="decimal"
+                required>
+    </label>
+
+    <button id="allocate-ar-payment" type="submit">
+        Allocate Payment
+    </button>
+</form>
+
+<pre id="ar-allocation-status" aria-live="polite"></pre>

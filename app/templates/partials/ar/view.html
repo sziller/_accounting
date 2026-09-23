@@ -1,0 +1,23 @@
+<section
+        class="app-view"
+        id="ar-view"
+        aria-labelledby="show-ar-view"
+        hidden>
+
+    <div class="ar-workspace">
+        <div class="ar-editor-column">
+            {% include "partials/ar/editor.html" %}
+        </div>
+
+        <aside
+                class="ar-records-column"
+                aria-label="AR source PDFs and outgoing invoices">
+
+            {% include "partials/ar/source_files.html" %}
+            {% include "partials/ar/invoices.html" %}
+        </aside>
+    </div>
+
+    {% include "partials/ar/processing.html" %}
+    {% include "partials/ar/payments.html" %}
+</section>

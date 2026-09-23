@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Accounting Entry</title>
+
+    <link href="/static/Accounting-LogoBitbucket.jpg" rel="icon">
+    <link href="/static/css/main.css" rel="stylesheet">
+    <link href="/static/css/accounting_layout.css?v=sorting-1" rel="stylesheet">
+    <link href="/static/css/yearly_summary.css?v=1" rel="stylesheet">
+</head>
+
+<body>
+<main class="page accounting-page">
+
+    {% include "partials/header.html" %}
+
+    {% include "partials/ap/view.html" %}
+
+    {% include "partials/ar/view.html" %}
+
+    {% include "partials/new_entries.html" %}
+
+    {% include "partials/yearly_summary.html" %}
+
+</main>
+
+<!-- Navigation must remain available even if a feature module fails to load. -->
+<script src="/static/js/view_navigation.js?v=3" defer></script>
+<script src="/static/js/yearly_summary.js?v=1" type="module"></script>
+<script src="/static/js/app_bootstrap.js?v=1" type="module"></script>
+
+</body>
+</html>

@@ -1,0 +1,209 @@
+<section class="card primary-card">
+    <div class="section-heading">
+        <div>
+            <h2>Selected Entry Detail</h2>
+            <p class="muted">
+                Select an entry from the list to inspect it. Unlock editing to modify raw fields.
+                Derived fields remain read-only and are recalculated by the backend.
+            </p>
+        </div>
+
+        <div class="json-actions section-actions">
+            <button disabled id="unlock-entry-edit" type="button">Unlock Editing</button>
+            <button disabled id="save-entry-edit" type="button">Save Changes</button>
+            <button disabled id="cancel-entry-edit" type="button">Cancel</button>
+        </div>
+    </div>
+
+    <div class="json-actions">
+        <button disabled id="process-entry" type="button">Process Entry</button>
+    </div>
+
+    <form class="detail-form form-grid" id="entry-detail-form">
+        <input id="detail_id" name="id" type="hidden">
+
+        <h3 class="form-section-title">Editable Raw Fields</h3>
+
+        <label>
+            Type
+            <select disabled id="detail_entry_type" name="entry_type" required></select>
+        </label>
+
+        <label>
+            Category
+            <select disabled id="detail_category_code" name="category_code" required></select>
+        </label>
+
+        <label>
+            Tax Scope
+            <select disabled id="detail_tax_scope" name="tax_scope" required></select>
+        </label>
+
+        <label>
+            Counterparty
+            <input
+                disabled
+                id="detail_counterparty_name"
+                maxlength="255"
+                name="counterparty_name"
+                required
+            >
+        </label>
+
+        <label>
+            Payment Method
+            <select disabled id="detail_payment_method" name="payment_method" required></select>
+        </label>
+
+        <label>
+            Payment Date
+            <input
+                disabled
+                id="detail_payment_date"
+                name="payment_date"
+                required
+                type="date"
+            >
+        </label>
+
+        <label>
+            Amount Original
+            <input
+                disabled
+                id="detail_amount_original"
+                min="0.01"
+                name="amount_original"
+                required
+                step="0.01"
+                type="number"
+            >
+        </label>
+
+        <label>
+            Currency Original
+            <select
+                disabled
+                id="detail_currency_original"
+                name="currency_original"
+                required
+            ></select>
+        </label>
+
+        <label class="checkbox-row field-wide">
+            <input disabled id="detail_has_invoice" name="has_invoice" type="checkbox">
+            Has invoice
+        </label>
+
+        <label>
+            Invoice Number
+            <input
+                disabled
+                id="detail_invoice_number"
+                maxlength="128"
+                name="invoice_number"
+            >
+        </label>
+
+        <label>
+            Invoice Date
+            <input disabled id="detail_invoice_date" name="invoice_date" type="date">
+        </label>
+
+        <label class="field-wide">
+            Remarks
+            <textarea disabled id="detail_remarks" name="remarks"></textarea>
+        </label>
+
+        <label class="field-wide">
+            Tags, comma-separated
+            <input disabled id="detail_tags" name="tags">
+        </label>
+
+        <label class="field-wide">
+            Source Filename
+            <input
+                disabled
+                id="detail_source_filename"
+                maxlength="255"
+                name="source_filename"
+            >
+        </label>
+
+        <h3 class="form-section-title">Derived / Read-only Fields</h3>
+
+        <label>
+            Booking Year
+            <input disabled id="detail_booking_year">
+        </label>
+
+        <label>
+            Amount Common
+            <input disabled id="detail_amount_common">
+        </label>
+
+        <label>
+            Currency Common
+            <input disabled id="detail_currency_common">
+        </label>
+
+        <label>
+            Exchange Rate
+            <input disabled id="detail_exchange_rate">
+        </label>
+
+        <label>
+            Exchange Rate Date
+            <input disabled id="detail_exchange_rate_date">
+        </label>
+
+        <label>
+            VAT Rate Percent
+            <input disabled id="detail_vat_rate_percent">
+        </label>
+
+        <label>
+            VAT Amount
+            <input disabled id="detail_vat_amount">
+        </label>
+
+        <label>
+            Deductible Percent
+            <input disabled id="detail_deductible_percent">
+        </label>
+
+        <label>
+            Deductible Amount
+            <input disabled id="detail_deductible_amount">
+        </label>
+
+        <label>
+            Deductible VAT Amount
+            <input disabled id="detail_deductible_vat_amount">
+        </label>
+
+        <label>
+            Write-off Method
+            <input disabled id="detail_writeoff_method">
+        </label>
+
+        <label>
+            Conversion Status
+            <input disabled id="detail_conversion_status">
+        </label>
+
+        <label class="field-wide">
+            Conversion Note
+            <textarea disabled id="detail_conversion_note"></textarea>
+        </label>
+
+        <label>
+            Created At
+            <input disabled id="detail_created_at">
+        </label>
+
+        <label>
+            Updated At
+            <input disabled id="detail_updated_at">
+        </label>
+    </form>
+</section>

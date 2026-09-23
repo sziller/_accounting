@@ -1,0 +1,10 @@
+.view-nav { flex-wrap: wrap; }
+.summary-controls { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+#summary-year { width: 7rem; }
+.summary-headlines { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+.summary-headlines > div { padding: 1rem; border: 1px solid #8886; border-radius: .5rem; }
+.summary-headlines dd { margin: .5rem 0 0; font-size: 1.35rem; font-weight: bold; overflow-wrap: anywhere; }
+.summary-incomplete { border-left: .3rem solid #b66a00; padding: .6rem; background: #e8a53a22; }
+.summary-table-scroll { overflow-x: auto; }
+.summary-table-scroll table { width: 100%; white-space: nowrap; }
+#summary-warnings li { margin-bottom: .5rem; }

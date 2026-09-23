@@ -5,3 +5,6 @@ settings/
 venv/
 
 Erklaerung_*/
+
+# Local accounting databases and source documents must never be committed.
+/data/

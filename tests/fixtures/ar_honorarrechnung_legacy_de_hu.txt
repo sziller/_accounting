@@ -1,0 +1,23 @@
+Honorarrechnung Nr.: 9201
+18. Februar 2030
+Example Issuer
+Example Street 1 Bankverbindung - Name of the Bank: Example Bank
+Ust-IdNr. - VATIN: DE123456789
+Test Contact Test Contact
+Example Cooperative Example Cooperative
+H – 1234 Example City
+Example Address 1
+H – 1234 Example City
+Example Address 1
+Honorarrechnung Számla
+Hiermit stelle ich Ihnen folgende Honorarrechnung:
+Vermerk: Reverse-Charge-Regelung Megjegyzés: Közösségi adózás – fordított ÁFA
+Nettohonorar – nettó – banki költség: 24.000 HUF
+Nettohonorar – nettó – operatív teljesítés: 60.000 HUF
+Nettohonorar gesammt – nettó összeg 84.000 HUF
+Bruttohonorar
+(siehe Vermerk) – bruttó: (lásd megjegyzés) 84.000 HUF
+Bitte überweisen Sie das Bruttohonorar innerhalb
+der nächsten 14 Tage.
+Die Rechnung wurde elektronisch erstellt.
+9201

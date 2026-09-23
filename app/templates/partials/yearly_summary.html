@@ -1,0 +1,101 @@
+<section
+        class="app-view"
+        id="summary-view"
+        aria-labelledby="show-summary-view"
+        hidden>
+
+    <section class="card">
+        <h2>Gewinnermittlung</h2>
+
+        <p>
+            Yearly preview of processed accounting facts. The gross-basis result is not a final taxable-profit figure.
+        </p>
+
+        <div class="summary-controls">
+            <label for="summary-year">Tax year</label>
+
+            <input
+                    id="summary-year"
+                    type="number"
+                    min="1"
+                    max="9999"
+                    step="1"
+                    required>
+
+            <button id="refresh-summary" type="button">
+                Refresh Summary
+            </button>
+        </div>
+
+        <p
+                id="summary-status"
+                role="status"
+                aria-live="polite"></p>
+
+        <div id="summary-results" hidden>
+            <h3 id="summary-completeness"></h3>
+
+            <p id="summary-currency"></p>
+
+            <ul id="summary-warnings"></ul>
+
+            <dl
+                    id="summary-headlines"
+                    class="summary-headlines"></dl>
+
+            <p id="summary-counts"></p>
+
+            <h3>AP detailed breakdown</h3>
+
+            <p>
+                Only eligible expense records contribute to the headline expense subtotal.
+                Other entry types remain visible below.
+            </p>
+
+            <div class="summary-table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Entry type</th>
+                            <th>Category</th>
+                            <th>Tax scope</th>
+                            <th>Currency</th>
+                            <th>Count</th>
+                            <th>Incomplete count</th>
+                            <th>Common amount</th>
+                            <th>VAT</th>
+                            <th>Deductible gross</th>
+                            <th>Deductible VAT</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="summary-ap-body"></tbody>
+                </table>
+            </div>
+
+            <h3>AR components by original currency</h3>
+
+            <p>
+                Known net and VAT subtotals may be partial; missing counts identify incomplete components.
+            </p>
+
+            <div class="summary-table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Currency</th>
+                            <th>Events</th>
+                            <th>Recognized gross</th>
+                            <th>Known net</th>
+                            <th>Known VAT</th>
+                            <th>Missing net count</th>
+                            <th>Missing VAT count</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="summary-ar-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</section>

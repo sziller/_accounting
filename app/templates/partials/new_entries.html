@@ -1,0 +1,161 @@
+<section
+        class="app-view"
+        id="input-view"
+        aria-labelledby="show-input-view"
+        hidden>
+
+    <div class="input-workspace">
+        <section class="card primary-card">
+            <h2>Manual New Entry</h2>
+
+            <form class="form-grid" id="entry-form">
+                <label>
+                    Type
+                    <select id="entry_type" name="entry_type" required></select>
+                </label>
+
+                <label>
+                    Category
+                    <select id="category_code" name="category_code" required></select>
+                </label>
+
+                <label>
+                    Tax Scope
+                    <select id="tax_scope" name="tax_scope" required></select>
+                </label>
+
+                <label>
+                    Counterparty
+                    <input maxlength="255" name="counterparty_name" required>
+                </label>
+
+                <label>
+                    Payment Method
+                    <select id="payment_method" name="payment_method" required></select>
+                </label>
+
+                <label>
+                    Payment Date
+                    <input name="payment_date" required type="date">
+                </label>
+
+                <label>
+                    Amount
+                    <input
+                            min="0.01"
+                            name="amount_original"
+                            required
+                            step="0.01"
+                            type="number">
+                </label>
+
+                <label>
+                    Currency
+                    <select
+                            id="currency_original"
+                            name="currency_original"
+                            required></select>
+                </label>
+
+                <label class="checkbox-row field-wide">
+                    <input checked name="has_invoice" type="checkbox">
+                    Has invoice
+                </label>
+
+                <label>
+                    Invoice Number
+                    <input maxlength="128" name="invoice_number">
+                </label>
+
+                <label>
+                    Invoice Date
+                    <input name="invoice_date" type="date">
+                </label>
+
+                <label class="field-wide">
+                    Remarks
+                    <textarea name="remarks"></textarea>
+                </label>
+
+                <label class="field-wide">
+                    Tags, comma-separated
+                    <input name="tags">
+                </label>
+
+                <div class="form-actions field-wide">
+                    <button type="submit">Save Entry</button>
+                </div>
+            </form>
+
+            <pre id="message"></pre>
+        </section>
+
+        <section class="card utility-card">
+            <h2>Paste Entry JSON / Batch JSON</h2>
+
+            <p class="muted">
+                Paste either one entry object, a list of entry objects, or a batch object
+                shaped as <code>{ "entries": [...] }</code>. The frontend normalizes it and
+                submits it to the batch endpoint.
+            </p>
+
+            <div class="json-actions">
+                <button id="load-example-json" type="button">
+                    Load Example JSON
+                </button>
+
+                <button id="submit-json" type="button">
+                    Submit JSON
+                </button>
+            </div>
+
+            <textarea
+                    class="json-paste-area"
+                    id="json-paste-area"
+                    placeholder='{
+  "entry_type": "expense",
+  "category_code": "buro",
+  "tax_scope": "domestic",
+  "counterparty_name": "Example GmbH",
+  "payment_method": "bank_transfer",
+  "payment_date": "2026-05-25",
+  "has_invoice": true,
+  "invoice_number": "RE-2026-001",
+  "invoice_date": "2026-05-25",
+  "amount_original": "123.45",
+  "currency_original": "EUR",
+  "remarks": "Manual JSON paste.",
+  "tags": ["manual-json"],
+  "source_filename": "IMG_4821.JPG"
+}'
+                    spellcheck="false"></textarea>
+        </section>
+
+        <section class="card utility-card">
+            <h2>AI Invoice Recognition Contract</h2>
+
+            <p class="muted">
+                Fetch the current dynamic JSON contract for invoice recognition/formalization.
+                Give this contract to the recognizer instance so it knows exactly which fields,
+                allowed values, and example payload the accounting backend currently expects.
+            </p>
+
+            <div class="json-actions">
+                <button id="fetch-contract-json" type="button">
+                    Fetch Current Contract
+                </button>
+
+                <button id="copy-contract-json" type="button">
+                    Copy Contract JSON
+                </button>
+            </div>
+
+            <textarea
+                    class="json-paste-area"
+                    id="contract-json-area"
+                    placeholder="Click 'Fetch Current Contract' to load the dynamic create-entry schema."
+                    readonly
+                    spellcheck="false"></textarea>
+        </section>
+    </div>
+</section>

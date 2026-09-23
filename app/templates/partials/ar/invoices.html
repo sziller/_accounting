@@ -1,0 +1,44 @@
+<section class="card ar-invoices-card">
+    <div class="ar-file-browser-heading">
+        <h2>Outgoing Invoices</h2>
+        <span class="muted" id="ar-invoice-db-count">Loading…</span>
+    </div>
+
+    <div class="json-actions ar-invoice-navigation">
+        <button disabled id="previous-ar-invoice" type="button">
+            Previous Invoice
+        </button>
+
+        <button disabled id="next-ar-invoice" type="button">
+            Next Invoice
+        </button>
+    </div>
+
+    <div class="ar-db-table-wrap" aria-live="polite">
+        <table class="ar-db-table">
+            <thead>
+                <tr>
+                    <th>Invoice Number</th>
+                    <th>Invoice Date</th>
+                    <th>Customer</th>
+                    <th>Original Currency</th>
+                    <th>Original Gross</th>
+                    <th>Paid (original)</th>
+                    <th>Outstanding (original)</th>
+                    <th>Status</th>
+                    <th>PDF Filename</th>
+                    <th>Common Currency</th>
+                    <th>Common Amount</th>
+                </tr>
+            </thead>
+
+            <tbody id="ar-invoice-db-body">
+                <tr>
+                    <td class="muted" colspan="11">
+                        Loading outgoing invoices…
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>

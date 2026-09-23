@@ -1,0 +1,37 @@
+<section class="card source-image-card" aria-labelledby="source-image-heading">
+    <div class="source-image-heading-row">
+        <div>
+            <h2 id="source-image-heading">Source Image</h2>
+            <p class="muted">JPEG source associated with the selected entry.</p>
+        </div>
+
+        <div class="source-image-navigation" aria-label="Entry image navigation">
+            <button disabled id="previous-source-image" type="button" title="Previous entry">&larr; Previous</button>
+            <button disabled id="next-source-image" type="button" title="Next entry">Next &rarr;</button>
+        </div>
+    </div>
+
+    <div class="source-image-tools" role="group" aria-label="Image zoom controls">
+        <button disabled id="source-image-zoom-out" type="button" aria-label="Zoom out" title="Zoom out (−)">−</button>
+        <button disabled id="source-image-zoom-in" type="button" aria-label="Zoom in" title="Zoom in (+)">+</button>
+        <button disabled id="source-image-reset" type="button" title="Fit entire image (0)">Fit</button>
+    </div>
+
+    <div
+            class="source-image-frame"
+            id="source-image-frame"
+            tabindex="0"
+            role="region"
+            aria-label="Source image viewer. Ctrl+wheel or plus and minus to zoom; drag to pan; 0 to fit.">
+        <img id="source-image" alt="Source document for the selected entry" draggable="false" hidden>
+
+        <p class="source-image-empty" id="source-image-empty">
+            Select an entry to display its source JPEG.
+        </p>
+    </div>
+
+    <div class="source-image-meta">
+        <span class="muted">File:</span>
+        <span id="source-image-filename">None selected</span>
+    </div>
+</section>

@@ -1,0 +1,533 @@
+/*
+ * Accounting application layout layer, v2.
+ * Load after main.css.
+ *
+ * Responsibilities:
+ * - top-level Process/Input navigation
+ * - full-width Process workspace
+ * - responsive forms
+ * - sticky Entries panel
+ * - source-image presentation
+ * - narrower Input workspace
+ */
+
+.accounting-page {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1rem 1.5rem 2rem;
+}
+
+.accounting-page *,
+.accounting-page *::before,
+.accounting-page *::after {
+    box-sizing: border-box;
+}
+
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid rgba(127, 127, 127, 0.24);
+}
+
+.app-brand h1 {
+    margin: 0;
+}
+
+.page-subtitle {
+    margin: 0.3rem 0 0;
+    opacity: 0.7;
+}
+
+.view-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem;
+    border: 1px solid rgba(127, 127, 127, 0.24);
+    border-radius: 0.6rem;
+}
+
+.view-nav-button {
+    min-width: 7rem;
+    border: 0;
+    border-radius: 0.4rem;
+    background: transparent;
+}
+
+.view-nav-button.is-active {
+    font-weight: 700;
+    background: rgba(127, 127, 127, 0.16);
+}
+
+.app-view[hidden] {
+    display: none !important;
+}
+
+/* Process ------------------------------------------------------------ */
+
+.process-workspace {
+    display: grid;
+    grid-template-columns: minmax(24rem, 38fr) minmax(30rem, 62fr);
+    align-items: start;
+    gap: 1.25rem;
+}
+
+.process-left-column,
+.input-workspace {
+    min-width: 0;
+    display: grid;
+    gap: 1.25rem;
+}
+
+.process-right-column {
+    position: sticky;
+    top: 1rem;
+    min-width: 0;
+    width: 100%;
+    height: calc(100vh - 2rem);
+    align-self: start;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 1.25rem;
+}
+
+.accounting-page .card {
+    margin: 0;
+}
+
+.primary-card,
+.utility-card,
+.source-image-card {
+    scroll-margin-top: 1rem;
+}
+
+.section-heading,
+.source-image-heading-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.section-heading h2,
+.source-image-heading-row h2,
+.entries-heading h2 {
+    margin-top: 0;
+}
+
+.section-heading .muted,
+.source-image-heading-row .muted,
+.entries-heading .muted {
+    margin-bottom: 0;
+}
+
+.section-actions,
+.source-image-navigation {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+/* Forms -------------------------------------------------------------- */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.9rem 1rem;
+}
+
+.form-grid > label {
+    min-width: 0;
+    margin: 0;
+}
+
+.form-grid > label:not(.checkbox-row) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.form-grid input,
+.form-grid select,
+.form-grid textarea {
+    width: 100%;
+    min-width: 0;
+}
+
+.form-grid textarea {
+    min-height: 6rem;
+    resize: vertical;
+}
+
+.field-wide,
+.form-section-title,
+.form-actions {
+    grid-column: 1 / -1;
+}
+
+.form-section-title {
+    margin: 0.85rem 0 0;
+    padding-top: 0.9rem;
+    border-top: 1px solid rgba(127, 127, 127, 0.24);
+}
+
+.form-section-title:first-of-type {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-start;
+}
+
+/* Source image ------------------------------------------------------- */
+
+.source-image-card {
+    min-width: 0;
+}
+
+.source-image-tools {
+    display: flex;
+    gap: 0.35rem;
+    margin-bottom: 0.5rem;
+}
+
+.source-image-tools button { padding: 0.2rem 0.6rem; }
+.source-image-frame.is-pannable { cursor: grab; }
+.source-image-frame.is-dragging { cursor: grabbing; }
+.source-image-frame:focus-visible { outline: 2px solid #476e9e; }
+
+.source-image-frame {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 12rem;
+    min-height: 12rem;
+    padding: 0.5rem;
+    overflow: hidden;
+    border: 1px solid rgba(127, 127, 127, 0.24);
+    border-radius: 0.5rem;
+    background: rgba(127, 127, 127, 0.05);
+}
+
+.source-image-frame img {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    object-fit: contain;
+    transform-origin: center;
+    user-select: none;
+}
+
+.source-image-frame img[hidden] {
+    display: none;
+}
+
+tr.entry-row.is-selected { background: #e5edf5; }
+
+.source-image-empty {
+    margin: 0;
+    text-align: center;
+    opacity: 0.65;
+}
+
+.source-image-meta {
+    display: flex;
+    gap: 0.45rem;
+    margin-top: 0.65rem;
+    overflow-wrap: anywhere;
+}
+
+/* Entries ------------------------------------------------------------ */
+
+.entries-card {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.entries-heading {
+    flex: 0 0 auto;
+    margin-bottom: 0.75rem;
+}
+
+.entries-table-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+.entries-table {
+    width: 100%;
+    min-width: 42rem;
+    margin: 0;
+}
+
+.entries-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+/* Input -------------------------------------------------------------- */
+
+.input-workspace {
+    width: min(100%, 78rem);
+    margin: 0 auto;
+}
+
+.json-paste-area {
+    width: 100%;
+}
+
+#json-paste-area,
+#contract-json-area {
+    min-height: 20rem;
+}
+
+/* AR invoice import -------------------------------------------------- */
+
+.ar-invoice-import-card {
+    min-width: 0;
+}
+
+.ar-directory-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+}
+
+.ar-directory-meta code {
+    overflow-wrap: anywhere;
+}
+
+.ar-invoice-actions {
+    margin-bottom: 0.9rem;
+}
+
+.ar-file-browser {
+    border: 1px solid rgba(127, 127, 127, 0.24);
+    border-radius: 0.5rem;
+    background: rgba(127, 127, 127, 0.04);
+    overflow: hidden;
+}
+
+.ar-file-browser-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.65rem 0.8rem;
+    border-bottom: 1px solid rgba(127, 127, 127, 0.18);
+}
+
+.ar-file-list {
+    min-height: 5rem;
+    max-height: 14rem;
+    margin: 0;
+    padding: 0.65rem 0.8rem 0.65rem 2rem;
+    overflow: auto;
+}
+
+.ar-file-list li {
+    margin: 0.25rem 0;
+    overflow-wrap: anywhere;
+}
+
+.ar-import-status {
+    min-height: 0;
+    margin: 0.9rem 0 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.ar-import-status:empty {
+    display: none;
+}
+
+/* Responsive --------------------------------------------------------- */
+
+
+.ar-import-grid {
+    display: grid;
+    grid-template-columns: minmax(16rem, 0.8fr) minmax(32rem, 1.7fr);
+    gap: 1rem;
+    align-items: stretch;
+}
+
+.ar-db-browser {
+    min-width: 0;
+    border: 1px solid rgba(127, 127, 127, 0.24);
+    border-radius: 0.5rem;
+    background: rgba(127, 127, 127, 0.04);
+    overflow: hidden;
+}
+
+.ar-db-table-wrap {
+    max-height: 14rem;
+    overflow: auto;
+}
+
+.ar-db-table {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+}
+
+.ar-db-table th,
+.ar-db-table td {
+    padding: 0.55rem 0.65rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(127, 127, 127, 0.14);
+}
+
+.ar-db-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--card-bg, Canvas);
+}
+
+@media (max-width: 1050px) {
+    .ar-import-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 900px) {
+    .process-workspace {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .process-right-column {
+        position: static;
+        grid-row: 1;
+        height: auto;
+        grid-template-rows: auto auto;
+    }
+
+    .entries-card {
+        min-height: 30rem;
+    }
+
+    .entries-table-wrap {
+        max-height: 30rem;
+    }
+
+    .source-image-frame {
+        height: 10rem;
+        min-height: 10rem;
+    }
+}
+
+@media (max-width: 720px) {
+    .accounting-page {
+        padding: 0.75rem;
+    }
+
+    .app-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .view-nav {
+        width: 100%;
+    }
+
+    .view-nav-button {
+        flex: 1 1 0;
+    }
+
+    .form-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .field-wide,
+    .form-section-title,
+    .form-actions {
+        grid-column: auto;
+    }
+
+    .section-heading,
+    .source-image-heading-row {
+        display: block;
+    }
+
+    .section-actions,
+    .source-image-navigation {
+        justify-content: flex-start;
+        margin-top: 0.75rem;
+    }
+
+    .source-image-frame {
+        height: 9rem;
+        min-height: 9rem;
+    }
+}
+
+/* Accounts Receivable: same desktop proportions as AP, isolated domain IDs. */
+.ar-workspace {
+    display: grid;
+    grid-template-columns: minmax(24rem, 38fr) minmax(30rem, 62fr);
+    align-items: start;
+    gap: 1.25rem;
+}
+.ar-editor-column, .ar-records-column { min-width: 0; }
+.ar-records-column {
+    position: sticky;
+    top: 1rem;
+    height: calc(100vh - 2rem);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 1.25rem;
+}
+.ar-source-card h2, .ar-invoices-card h2 { margin: 0 0 0.65rem; }
+.ar-source-card .ar-file-list { height: 8rem; min-height: 0; }
+.ar-source-card .ar-import-status { max-height: 5rem; overflow: auto; margin-bottom: 0; }
+.ar-source-card .ar-import-status:empty { display: none; }
+.ar-invoices-card { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.ar-invoices-card .ar-db-table-wrap { flex: 1; min-height: 0; max-height: none; overflow: auto; }
+.ar-invoices-card .ar-db-table thead th { position: sticky; top: 0; background: white; z-index: 1; }
+.ar-editor-actions, .ar-invoice-navigation, .ar-invoice-actions { flex-wrap: wrap; }
+.ar-db-table tr[data-invoice-id] { cursor: pointer; }
+.ar-db-table tr.is-selected { background: #e5edf5; }
+.ar-pdf-button { background: transparent; border: 0; padding: 0; text-align: left; overflow-wrap: anywhere; }
+.ar-pdf-button.is-selected { font-weight: bold; }
+.view-nav { flex-wrap: wrap; }
+@media (max-width: 900px) {
+    .ar-workspace { grid-template-columns: minmax(0, 1fr); }
+    .ar-records-column { position: static; height: auto; grid-template-rows: auto auto; }
+    .ar-invoices-card .ar-db-table-wrap { max-height: 30rem; flex: auto; }
+}
+
+/* Native header buttons support mouse, Enter, and Space without changing table geometry. */
+.table-sort-button {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.table-sort-button::after { content: " ↕"; opacity: 0.45; }
+th[aria-sort="ascending"] .table-sort-button::after { content: " ↑"; opacity: 1; }
+th[aria-sort="descending"] .table-sort-button::after { content: " ↓"; opacity: 1; }

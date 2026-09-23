@@ -1,0 +1,221 @@
+<section class="card">
+    <h2>Selected Outgoing Invoice</h2>
+
+    <button disabled id="process-ar-entry" type="button">
+        Process Entry
+    </button>
+
+    <p class="muted">
+        Select an invoice from the table. Unlock editing to change persisted fields.
+    </p>
+
+    <div class="json-actions ar-editor-actions">
+        <button disabled id="unlock-ar-invoice-edit" type="button">
+            Unlock Editing
+        </button>
+        <button disabled id="save-ar-invoice-edit" type="button">
+            Save Changes
+        </button>
+        <button disabled id="cancel-ar-invoice-edit" type="button">
+            Cancel
+        </button>
+    </div>
+
+    <form class="form-grid" id="ar-invoice-detail-form">
+        <label>
+            Invoice Number
+            <input
+                    disabled
+                    id="ar-invoice-invoice_number"
+                    name="invoice_number"
+                    type="text"
+                    required>
+        </label>
+
+        <label>
+            Invoice Date
+            <input
+                    disabled
+                    id="ar-invoice-invoice_date"
+                    name="invoice_date"
+                    type="date"
+                    required>
+        </label>
+
+        <label>
+            Due Date
+            <input
+                    disabled
+                    id="ar-invoice-due_date"
+                    name="due_date"
+                    type="date">
+        </label>
+
+        <label>
+            Payment Received Date
+            <input
+                    disabled
+                    id="ar-invoice-payment_date"
+                    name="payment_date"
+                    type="date">
+        </label>
+
+        <label>
+            Customer Name
+            <input
+                    disabled
+                    id="ar-invoice-customer_name"
+                    name="customer_name"
+                    type="text"
+                    required>
+        </label>
+
+        <label>
+            Customer Reference
+            <input
+                    disabled
+                    id="ar-invoice-customer_reference"
+                    name="customer_reference"
+                    type="text">
+        </label>
+
+        <label>
+            Original Currency
+            <input
+                    disabled
+                    id="ar-invoice-currency_original"
+                    name="currency_original"
+                    type="text"
+                    required
+                    maxlength="3"
+                    pattern="[A-Z]{3}">
+        </label>
+
+        <label>
+            Original Net Amount
+            <input
+                    disabled
+                    id="ar-invoice-net_amount"
+                    name="net_amount"
+                    type="text"
+                    inputmode="decimal">
+        </label>
+
+        <label>
+            Original VAT Amount
+            <input
+                    disabled
+                    id="ar-invoice-vat_amount"
+                    name="vat_amount"
+                    type="text"
+                    inputmode="decimal">
+        </label>
+
+        <label>
+            Original Gross Amount
+            <input
+                    disabled
+                    id="ar-invoice-amount_original"
+                    name="amount_original"
+                    type="text"
+                    required
+                    inputmode="decimal">
+        </label>
+
+        <label>
+            Common Currency
+            <input
+                    disabled
+                    id="ar-invoice-currency_common"
+                    name="currency_common"
+                    type="text"
+                    required
+                    maxlength="3"
+                    pattern="[A-Z]{3}">
+        </label>
+
+        <label>
+            PDF Filename
+            <input
+                    disabled
+                    id="ar-invoice-pdf_filename"
+                    name="pdf_filename"
+                    type="text">
+        </label>
+
+        <label>
+            PDF SHA-256
+            <input
+                    disabled
+                    id="ar-invoice-pdf_sha256"
+                    name="pdf_sha256"
+                    type="text">
+        </label>
+
+        <label class="field-wide">
+            Remarks
+            <textarea
+                    disabled
+                    id="ar-invoice-remarks"
+                    name="remarks"></textarea>
+        </label>
+
+        <h3 class="form-section-title">
+            Derived / Read-only Fields
+        </h3>
+
+        <label>
+            Common Amount
+            <input
+                    readonly
+                    id="ar-invoice-amount_common"
+                    type="text"
+                    placeholder="Pending normalization">
+        </label>
+
+        <label>
+            Paid (original currency)
+            <input
+                    readonly
+                    id="ar-invoice-paid_amount"
+                    type="text">
+        </label>
+
+        <label>
+            Outstanding (original currency)
+            <input
+                    readonly
+                    id="ar-invoice-outstanding_amount"
+                    type="text">
+        </label>
+
+        <label>
+            Payment Status
+            <input
+                    readonly
+                    id="ar-invoice-payment_status"
+                    type="text">
+        </label>
+
+        <label>
+            Created At
+            <input
+                    readonly
+                    id="ar-invoice-created_at"
+                    type="text">
+        </label>
+
+        <label>
+            Updated At
+            <input
+                    readonly
+                    id="ar-invoice-updated_at"
+                    type="text">
+        </label>
+    </form>
+
+    <pre id="ar-invoice-editor-status" aria-live="polite">Select an outgoing invoice.</pre>
+
+    {% include "partials/ar/allocations.html" %}
+    {% include "partials/ar/recognition.html" %}
+</section>

@@ -1,0 +1,134 @@
+<section class="card" id="ar-payments-panel">
+    <h2>Incoming Payments</h2>
+
+    <div class="json-actions">
+        <button id="new-ar-payment" type="button">
+            New Payment
+        </button>
+
+        <button id="refresh-ar-payments" type="button">
+            Refresh Payments
+        </button>
+    </div>
+
+    <div style="overflow-x: auto">
+        <table class="ar-db-table">
+            <thead>
+                <tr>
+                    <th>Payment date</th>
+                    <th>Amount</th>
+                    <th>Currency</th>
+                    <th>Payer</th>
+                    <th>Bank/reference</th>
+                    <th>Payment method</th>
+                    <th>Allocated amount</th>
+                    <th>Unallocated amount</th>
+                </tr>
+            </thead>
+
+            <tbody id="ar-payment-body">
+                <tr>
+                    <td colspan="8">
+                        Loading incoming payments…
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <form class="form-grid" id="ar-payment-form">
+        <label>
+            Payment date
+            <input
+                    disabled
+                    name="payment_date"
+                    type="date"
+                    required>
+        </label>
+
+        <label>
+            Amount
+            <input
+                    disabled
+                    name="amount"
+                    type="text"
+                    inputmode="decimal"
+                    required>
+        </label>
+
+        <label>
+            Currency
+            <input
+                    disabled
+                    name="currency"
+                    type="text"
+                    required
+                    placeholder="EUR">
+        </label>
+
+        <label>
+            Payer
+            <input
+                    disabled
+                    name="payer_name"
+                    type="text">
+        </label>
+
+        <label>
+            Bank/reference
+            <input
+                    disabled
+                    name="bank_reference"
+                    type="text">
+        </label>
+
+        <label>
+            Payment method
+            <input
+                    disabled
+                    name="payment_method"
+                    type="text">
+        </label>
+
+        <label>
+            Remarks
+            <textarea
+                    disabled
+                    name="remarks"></textarea>
+        </label>
+
+        <label>
+            Allocated amount
+            <input
+                    readonly
+                    name="allocated_amount"
+                    type="text">
+        </label>
+
+        <label>
+            Unallocated amount
+            <input
+                    readonly
+                    name="unallocated_amount"
+                    type="text">
+        </label>
+
+        <div class="json-actions">
+            <button
+                    disabled
+                    id="save-ar-payment"
+                    type="submit">
+                Save Changes
+            </button>
+
+            <button
+                    disabled
+                    id="cancel-ar-payment"
+                    type="button">
+                Cancel
+            </button>
+        </div>
+    </form>
+
+    <pre id="ar-payment-status" aria-live="polite"></pre>
+</section>

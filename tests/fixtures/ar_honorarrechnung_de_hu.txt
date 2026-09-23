@@ -1,0 +1,28 @@
+Honorarrechnung Nr.: 9102
+8. März 2032
+Example Issuer
+Example Street 1 Bankverbindung - Name of the Bank: Example Bank
+Ust-IdNr. - VATIN: DE123456789
+Herr Test Recipient Test Recipient
+Example Customer zRt. Example Customer zRt.
+Example Address 1
+UnternehmensID: 01-10-000000
+EU Steuernummer: HU12345678
+Example Address 1
+Honorarrechnung Számla
+Hiermit stelle ich Ihnen für Beratung folgende
+Honorarrechnung:
+Vermerk: Reverse-Charge-Regelung Megjegyzés: Közösségi adózás – fordított ÁFA
+01. Februar 2032 -
+29. Februar 2032
+Einheit x Stundenhonorar
+Beratung 47 h x 50 euro/h 2350.00 EUR
+Nettohonorar – net amount: 2350.00 EUR
+Bruttohonorar
+(siehe Vermerk) – gross amount: (see Note) 2350.00 EUR
+Bitte überweisen Sie das Bruttohonorar innerhalb
+der nächsten 14 Tagen
+Die Rechnung wurde elektronisch erstellt. Sie ist
+ohne Unterschrift gültig.
+Example Issuer
+9102

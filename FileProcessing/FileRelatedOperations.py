@@ -14,7 +14,7 @@ fullfilename    :   "f:/dev/subfloder/name.txt"     - directory structure plus f
 _raw            :   "...<id>...<timestamp>..."      - any string containing <> characters. Text btw. < and > are
                                                       keys pointing to strings to be inserted...
 
-General module developed by Szilard Gabor Ladanyi to be used across several applications.
+General module developed by Sziller to be used across several applications.
 All programs here are courtesy of the author.
 """
 

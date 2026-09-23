@@ -12,7 +12,7 @@ purefiledate    :   "20180512"                      - date of file creation w/o 
 purefiletime    :   "1244"                          - time of file creation w/o  '-'
 fullfilename    :   "f:/dev/subfloder/name.txt"     - directory structure plus filename with extension
 
-General module developed by Szilard Gabor Ladanyi to be used across several applications.
+General module developed by Sziller to be used across several applications.
 All programs here are courtesy of the author.
 """
 

@@ -2,6 +2,7 @@ import {
     initializeTableSort,
     reorderTableRows,
 } from "./table_sort.js";
+import {t} from "./i18n/i18n.js";
 
 
 const API_BASE = "/acct/v0";
@@ -67,7 +68,11 @@ async function apiPut(path, payload) {
 }
 
 
-function fillSelect(selectId, values) {
+function fillSelect(
+    selectId,
+    values,
+    translationPrefix = null
+) {
     const select = document.getElementById(selectId);
 
     if (!select) {
@@ -75,32 +80,106 @@ function fillSelect(selectId, values) {
         return;
     }
 
+    /*
+     * Preserve the actual backend value while rebuilding the visible
+     * option labels after a language change.
+     */
+    const selectedValue = select.value;
+
     select.innerHTML = "";
 
     for (const value of values) {
         const option = document.createElement("option");
+
+        /*
+         * Machine value: NEVER translated.
+         */
         option.value = value;
-        option.textContent = value;
+
+        /*
+         * Human-visible label: translated where a namespace is supplied.
+         *
+         * If no translation exists, t() falls back to the raw value.
+         */
+        option.textContent = translationPrefix
+            ? t(
+                `${translationPrefix}.${value}`,
+                value
+            )
+            : value;
+
         select.appendChild(option);
+    }
+
+    /*
+     * Language switching must not change the selected accounting value.
+     */
+    if (values.includes(selectedValue)) {
+        select.value = selectedValue;
     }
 }
 
+function getCategoryDisplayLabel(categoryCode) {
+    const category = metadata.categories.find(
+        item => item.code === categoryCode
+    );
+
+    const fallback =
+        category?.label
+        ?? categoryCode
+        ?? "";
+
+    return t(
+        `metadata.category.${categoryCode}`,
+        fallback
+    );
+}
 
 function fillDetailCategorySelect(categories) {
-    const select = document.getElementById("detail_category_code");
+    const select = document.getElementById(
+        "detail_category_code"
+    );
 
     if (!select) {
-        console.warn("Missing select element: detail_category_code");
+        console.warn(
+            "Missing select element: detail_category_code"
+        );
         return;
     }
+
+    const selectedValue = select.value;
 
     select.innerHTML = "";
 
     for (const category of categories) {
         const option = document.createElement("option");
+
+        /*
+         * Backend category code remains authoritative.
+         */
         option.value = category.code;
-        option.textContent = `${category.code} — ${category.label}`;
+
+        /*
+         * Category translation is keyed by stable category code.
+         *
+         * For now, if no frontend translation exists, retain the
+         * backend-provided label.
+         */
+        const translatedLabel =
+            getCategoryDisplayLabel(category.code);
+
+        option.textContent =
+            `${category.code} — ${translatedLabel}`;
+
         select.appendChild(option);
+    }
+
+    if (
+        categories.some(
+            category => category.code === selectedValue
+        )
+    ) {
+        select.value = selectedValue;
     }
 }
 
@@ -109,44 +188,67 @@ function validatePayloadClientSide(payload) {
     const errors = [];
 
     if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-        errors.push("Payload must be one JSON object.");
+        errors.push(
+            t("ap.validation.payloadObject")
+        );
         return errors;
     }
 
     if (!payload.entry_type) {
-        errors.push("Entry type is required.");
+        errors.push(
+            t("ap.validation.entryTypeRequired")
+        );
     }
 
     if (!payload.category_code) {
-        errors.push("Category is required.");
+        errors.push(
+            t("ap.validation.categoryRequired")
+        );
     }
 
     if (!payload.tax_scope) {
-        errors.push("Tax scope is required.");
+        errors.push(
+            t("ap.validation.taxScopeRequired")
+        );
     }
 
     if (!payload.counterparty_name) {
-        errors.push("Counterparty is required.");
+        errors.push(
+            t("ap.validation.counterpartyRequired")
+        );
     }
 
     if (!payload.payment_method) {
-        errors.push("Payment method is required.");
+        errors.push(
+            t("ap.validation.paymentMethodRequired")
+        );
     }
 
     if (!payload.payment_date) {
-        errors.push("Payment date is required.");
+        errors.push(
+            t("ap.validation.paymentDateRequired")
+        );
     }
 
-    if (!payload.amount_original || Number(payload.amount_original) <= 0) {
-        errors.push("Amount must be greater than zero.");
+    if (
+        !payload.amount_original
+        || Number(payload.amount_original) <= 0
+    ) {
+        errors.push(
+            t("ap.validation.amountPositive")
+        );
     }
 
     if (!payload.currency_original) {
-        errors.push("Currency is required.");
+        errors.push(
+            t("ap.validation.currencyRequired")
+        );
     }
 
     if (payload.has_invoice && !payload.invoice_date) {
-        errors.push("Invoice date is required when invoice exists.");
+        errors.push(
+            t("ap.validation.invoiceDateRequired")
+        );
     }
 
     return errors;
@@ -220,11 +322,36 @@ export async function initializeAccountsPayable({metadata} = {}) {
 
 
     function populateMetadata() {
-        fillSelect("detail_entry_type", metadata.entry_types);
-        fillSelect("detail_tax_scope", metadata.tax_scopes);
-        fillSelect("detail_payment_method", metadata.payment_methods);
-        fillSelect("detail_currency_original", metadata.currencies);
-        fillDetailCategorySelect(metadata.categories);
+        fillSelect(
+            "detail_entry_type",
+            metadata.entry_types,
+            "metadata.entryType"
+        );
+
+        fillSelect(
+            "detail_tax_scope",
+            metadata.tax_scopes,
+            "metadata.taxScope"
+        );
+
+        fillSelect(
+            "detail_payment_method",
+            metadata.payment_methods,
+            "metadata.paymentMethod"
+        );
+
+        /*
+         * Currency codes are machine-standard identifiers and are deliberately
+         * displayed unchanged.
+         */
+        fillSelect(
+            "detail_currency_original",
+            metadata.currencies
+        );
+
+        fillDetailCategorySelect(
+            metadata.categories
+        );
     }
 
 
@@ -333,11 +460,11 @@ export async function initializeAccountsPayable({metadata} = {}) {
         sourceImage.removeAttribute("src");
 
         sourceImageFilename.textContent =
-            filename || "No source image";
+            filename || t("ap.sourceImage.noSource");
 
         sourceImageEmpty.hidden = false;
         sourceImageEmpty.textContent =
-            "No source image associated with this entry.";
+            t("ap.sourceImage.noSourceAssociated");
 
         if (!filename) {
             return;
@@ -346,7 +473,8 @@ export async function initializeAccountsPayable({metadata} = {}) {
         const url =
             `${API_BASE}/source-images/${encodeURIComponent(filename)}`;
 
-        sourceImageEmpty.textContent = "Loading source image…";
+        sourceImageEmpty.textContent =
+            t("ap.sourceImage.loading");
 
         sourceImage.onload = () => {
             if (
@@ -371,7 +499,7 @@ export async function initializeAccountsPayable({metadata} = {}) {
 
             sourceImageEmpty.hidden = false;
             sourceImageEmpty.textContent =
-                "Unable to load source image.";
+                t("ap.sourceImage.loadFailed");
         };
 
         sourceImage.src = url;
@@ -392,7 +520,7 @@ export async function initializeAccountsPayable({metadata} = {}) {
         for (
             const row
             of entriesBody.querySelectorAll(".entry-row")
-        ) {
+            ) {
             const selected =
                 row.dataset.entryId === selectedEntry?.id;
 
@@ -442,37 +570,48 @@ export async function initializeAccountsPayable({metadata} = {}) {
     );
 
 
+    function renderEntries() {
+        entriesBody.innerHTML = "";
+
+        for (const entry of listedEntries) {
+            const tr = document.createElement("tr");
+
+            tr.classList.add("entry-row");
+            tr.dataset.entryId = entry.id;
+
+            const pending = t("ap.table.pending");
+
+            tr.innerHTML = `
+            <td>${entry.payment_date}</td>
+            <td>${entry.counterparty_name}</td>
+            <td>${getCategoryDisplayLabel(entry.category_code)}</td>
+            <td>${entry.amount_common ?? pending} ${entry.currency_common}</td>
+            <td>${entry.vat_amount ?? pending}</td>
+            <td>${entry.deductible_amount ?? pending}</td>
+        `;
+
+            tr.addEventListener(
+                "click",
+                async () => {
+                    await loadEntryDetail(entry.id);
+                }
+            );
+
+            entriesBody.appendChild(tr);
+        }
+
+        updateEntrySelection();
+    }
+
+
     async function loadEntries() {
         const entries = sortEntries(
             await apiGet("/entries")
         );
 
         listedEntries = entries;
-        entriesBody.innerHTML = "";
 
-        for (const entry of entries) {
-            const tr = document.createElement("tr");
-
-            tr.classList.add("entry-row");
-            tr.dataset.entryId = entry.id;
-
-            tr.innerHTML = `
-                <td>${entry.payment_date}</td>
-                <td>${entry.counterparty_name}</td>
-                <td>${entry.category_code}</td>
-                <td>${entry.amount_common ?? "pending"} ${entry.currency_common}</td>
-                <td>${entry.vat_amount ?? "pending"}</td>
-                <td>${entry.deductible_amount ?? "pending"}</td>
-            `;
-
-            tr.addEventListener("click", async () => {
-                await loadEntryDetail(entry.id);
-            });
-
-            entriesBody.appendChild(tr);
-        }
-
-        updateEntrySelection();
+        renderEntries();
     }
 
 
@@ -709,7 +848,9 @@ export async function initializeAccountsPayable({metadata} = {}) {
 
         setDetailEditable(false);
 
-        showMessage(`Loaded entry: ${entry.id}`);
+        showMessage(
+            `${t("ap.status.loadedEntry")}: ${entry.id}`
+        );
     }
 
 
@@ -743,58 +884,58 @@ export async function initializeAccountsPayable({metadata} = {}) {
 
         return {
             entry_type:
-                document.getElementById(
-                    "detail_entry_type"
-                ).value,
+            document.getElementById(
+                "detail_entry_type"
+            ).value,
 
             category_code:
-                document.getElementById(
-                    "detail_category_code"
-                ).value,
+            document.getElementById(
+                "detail_category_code"
+            ).value,
 
             tax_scope:
-                document.getElementById(
-                    "detail_tax_scope"
-                ).value,
+            document.getElementById(
+                "detail_tax_scope"
+            ).value,
 
             counterparty_name:
-                document.getElementById(
-                    "detail_counterparty_name"
-                ).value,
+            document.getElementById(
+                "detail_counterparty_name"
+            ).value,
 
             payment_method:
-                document.getElementById(
-                    "detail_payment_method"
-                ).value,
+            document.getElementById(
+                "detail_payment_method"
+            ).value,
 
             payment_date:
-                document.getElementById(
-                    "detail_payment_date"
-                ).value,
+            document.getElementById(
+                "detail_payment_date"
+            ).value,
 
             has_invoice: hasInvoice,
 
             invoice_number:
-                document.getElementById(
-                    "detail_invoice_number"
-                ).value,
+            document.getElementById(
+                "detail_invoice_number"
+            ).value,
 
             invoice_date:
                 hasInvoice
                     ? document.getElementById(
-                        "detail_invoice_date"
-                    ).value || null
+                    "detail_invoice_date"
+                ).value || null
                     : null,
 
             amount_original:
-                document.getElementById(
-                    "detail_amount_original"
-                ).value,
+            document.getElementById(
+                "detail_amount_original"
+            ).value,
 
             currency_original:
-                document.getElementById(
-                    "detail_currency_original"
-                ).value,
+            document.getElementById(
+                "detail_currency_original"
+            ).value,
 
             remarks:
                 document.getElementById(
@@ -821,7 +962,9 @@ export async function initializeAccountsPayable({metadata} = {}) {
 
     async function saveEntryDetail() {
         if (!selectedEntry) {
-            showMessage("No entry selected.");
+            showMessage(
+                t("ap.status.noEntrySelected")
+            );
             return;
         }
 
@@ -843,7 +986,7 @@ export async function initializeAccountsPayable({metadata} = {}) {
             await loadEntries();
 
             showMessage(
-                `Updated entry: ${updated.id}`
+                `${t("ap.status.updatedEntry")}: ${updated.id}`
             );
         } catch (error) {
             showMessage(formatApiError(error));
@@ -865,7 +1008,8 @@ export async function initializeAccountsPayable({metadata} = {}) {
         processingEntries = true;
         setDetailEditable(false);
 
-        processingStatus.textContent = "Processing…";
+        processingStatus.textContent =
+            t("ap.status.processing");
 
         try {
             const result = await apiPost(
@@ -885,16 +1029,17 @@ export async function initializeAccountsPayable({metadata} = {}) {
             }
 
             processingStatus.textContent = all
-                ? `${result.processed} processed; ${result.failed} failed.\n`
-                    + result.entries
-                        .map(
-                            item =>
-                                `${item.invoice_number || item.id} — `
-                                + `${item.status}: ${item.message}`
-                        )
-                        .join("\n")
+                ? `${result.processed} ${t("ap.status.processed")}; `
+                + `${result.failed} ${t("ap.status.failed")}.\n`
+                + result.entries
+                    .map(
+                        item =>
+                            `${item.invoice_number || item.id} — `
+                            + `${item.status}: ${item.message}`
+                    )
+                    .join("\n")
                 : `${result.invoice_number || result.id} — `
-                    + `${result.status}: ${result.message}`;
+                + `${result.status}: ${result.message}`;
         } catch (error) {
             processingStatus.textContent =
                 formatApiError(error);
@@ -1057,11 +1202,11 @@ export async function initializeAccountsPayable({metadata} = {}) {
     for (
         const event
         of [
-            "pointerup",
-            "pointercancel",
-            "lostpointercapture",
-        ]
-    ) {
+        "pointerup",
+        "pointercancel",
+        "lostpointercapture",
+    ]
+        ) {
         sourceImageFrame.addEventListener(
             event,
             stopImagePan
@@ -1085,7 +1230,7 @@ export async function initializeAccountsPayable({metadata} = {}) {
             "click",
             async () => {
                 showMessage(
-                    "Reprocessing pending currency conversions..."
+                    t("ap.status.reprocessing")
                 );
 
                 await reprocessPendingConversions();
@@ -1100,7 +1245,7 @@ export async function initializeAccountsPayable({metadata} = {}) {
             () => {
                 if (!selectedEntry) {
                     showMessage(
-                        "Select an entry first."
+                        t("ap.status.selectEntryFirst")
                     );
                     return;
                 }
@@ -1108,7 +1253,7 @@ export async function initializeAccountsPayable({metadata} = {}) {
                 setDetailEditable(true);
 
                 showMessage(
-                    "Editing unlocked. Derived fields remain read-only."
+                    t("ap.status.editingUnlocked")
                 );
             }
         );
@@ -1136,11 +1281,34 @@ export async function initializeAccountsPayable({metadata} = {}) {
                 }
 
                 setDetailEditable(false);
-                showMessage("Edit cancelled.");
+                showMessage(
+                    t("ap.status.editCancelled")
+                );
             }
         );
     }
 
+    document.addEventListener(
+        "accounting:language-changed",
+        () => {
+            populateMetadata();
+            renderEntries();
+
+            if (!selectedEntry) {
+                sourceImageFilename.textContent =
+                    t("ap.sourceImage.noneSelected");
+                return;
+            }
+
+            if (!selectedEntry.source_filename) {
+                sourceImageFilename.textContent =
+                    t("ap.sourceImage.noSource");
+
+                sourceImageEmpty.textContent =
+                    t("ap.sourceImage.noSourceAssociated");
+            }
+        }
+    );
 
     /*
      * Metadata supplied by app_bootstrap.js.

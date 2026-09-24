@@ -1,17 +1,27 @@
 <header class="app-header">
     <div class="app-brand">
-        <h1>Accounting</h1>
-        <p class="page-subtitle">Review, maintain and add bookkeeping entries.</p>
+        <h1 data-i18n="app.title">Accounting</h1>
+
+        <p
+                class="page-subtitle"
+                data-i18n="app.subtitle">
+            Review, maintain and add bookkeeping entries.
+        </p>
     </div>
 
-    <nav class="view-nav" aria-label="Bookkeeping sections">
+    <nav
+            class="view-nav"
+            aria-label="Bookkeeping sections"
+            data-i18n-aria-label="nav.ariaLabel">
+
         <button
                 class="view-nav-button is-active"
                 id="show-process-view"
                 type="button"
                 data-view-target="process-view"
                 aria-controls="process-view"
-                aria-selected="true">
+                aria-selected="true"
+                data-i18n="nav.accountsPayable">
             Accounts Payable
         </button>
 
@@ -21,7 +31,8 @@
                 type="button"
                 data-view-target="ar-view"
                 aria-controls="ar-view"
-                aria-selected="false">
+                aria-selected="false"
+                data-i18n="nav.accountsReceivable">
             Accounts Receivable
         </button>
 
@@ -31,7 +42,8 @@
                 type="button"
                 data-view-target="input-view"
                 aria-controls="input-view"
-                aria-selected="false">
+                aria-selected="false"
+                data-i18n="nav.newEntries">
             New Entries
         </button>
 
@@ -41,8 +53,34 @@
                 type="button"
                 data-view-target="summary-view"
                 aria-controls="summary-view"
-                aria-selected="false">
-            Gewinnermittlung
+                aria-selected="false"
+                data-i18n="nav.yearlySummary">
+            Yearly Summary
         </button>
     </nav>
+
+    <div class="language-selector">
+        <label
+                for="language-select"
+                data-i18n="language.label">
+            Language
+        </label>
+
+        <select
+                id="language-select"
+                name="language"
+                aria-label="Language">
+            <option
+                    value="en"
+                    data-i18n="language.english">
+                English
+            </option>
+
+            <option
+                    value="de"
+                    data-i18n="language.german">
+                German
+            </option>
+        </select>
+    </div>
 </header>

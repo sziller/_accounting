@@ -1,20 +1,86 @@
-<section class="card source-image-card" aria-labelledby="source-image-heading">
+<section
+        class="card source-image-card"
+        aria-labelledby="source-image-heading">
+
     <div class="source-image-heading-row">
         <div>
-            <h2 id="source-image-heading">Source Image</h2>
-            <p class="muted">JPEG source associated with the selected entry.</p>
+            <h2
+                    id="source-image-heading"
+                    data-i18n="ap.sourceImage">
+                Source Image
+            </h2>
+
+            <p
+                    class="muted"
+                    data-i18n="ap.sourceImageHelp">
+                JPEG source associated with the selected entry.
+            </p>
         </div>
 
-        <div class="source-image-navigation" aria-label="Entry image navigation">
-            <button disabled id="previous-source-image" type="button" title="Previous entry">&larr; Previous</button>
-            <button disabled id="next-source-image" type="button" title="Next entry">Next &rarr;</button>
+        <div
+                class="source-image-navigation"
+                aria-label="Entry image navigation"
+                data-i18n-aria-label="ap.sourceImage.entryNavigation">
+
+            <button
+                    disabled
+                    id="previous-source-image"
+                    type="button"
+                    title="Previous entry"
+                    data-i18n-title="ap.sourceImage.previousEntry">
+                &larr;
+                <span data-i18n="common.previous">Previous</span>
+            </button>
+
+            <button
+                    disabled
+                    id="next-source-image"
+                    type="button"
+                    title="Next entry"
+                    data-i18n-title="ap.sourceImage.nextEntry">
+                <span data-i18n="common.next">Next</span>
+                &rarr;
+            </button>
         </div>
     </div>
 
-    <div class="source-image-tools" role="group" aria-label="Image zoom controls">
-        <button disabled id="source-image-zoom-out" type="button" aria-label="Zoom out" title="Zoom out (−)">−</button>
-        <button disabled id="source-image-zoom-in" type="button" aria-label="Zoom in" title="Zoom in (+)">+</button>
-        <button disabled id="source-image-reset" type="button" title="Fit entire image (0)">Fit</button>
+    <div
+            class="source-image-tools"
+            role="group"
+            aria-label="Image zoom controls"
+            data-i18n-aria-label="ap.sourceImage.zoomControls">
+
+        <button
+                disabled
+                id="source-image-zoom-out"
+                type="button"
+                aria-label="Zoom out"
+                title="Zoom out (−)"
+                data-i18n-aria-label="ap.sourceImage.zoomOut"
+                data-i18n-title="ap.sourceImage.zoomOutTitle">
+            −
+        </button>
+
+        <button
+                disabled
+                id="source-image-zoom-in"
+                type="button"
+                aria-label="Zoom in"
+                title="Zoom in (+)"
+                data-i18n-aria-label="ap.sourceImage.zoomIn"
+                data-i18n-title="ap.sourceImage.zoomInTitle">
+            +
+        </button>
+
+        <button
+                disabled
+                id="source-image-reset"
+                type="button"
+                title="Fit entire image (0)"
+                data-i18n="ap.sourceImage.fit"
+                data-i18n-title="ap.sourceImage.fitTitle">
+            Fit
+        </button>
     </div>
 
     <div
@@ -22,16 +88,35 @@
             id="source-image-frame"
             tabindex="0"
             role="region"
-            aria-label="Source image viewer. Ctrl+wheel or plus and minus to zoom; drag to pan; 0 to fit.">
-        <img id="source-image" alt="Source document for the selected entry" draggable="false" hidden>
+            aria-label="Source image viewer. Ctrl+wheel or plus and minus to zoom; drag to pan; 0 to fit."
+            data-i18n-aria-label="ap.sourceImage.viewerHelp">
 
-        <p class="source-image-empty" id="source-image-empty">
+        <img
+                id="source-image"
+                alt="Source document for the selected entry"
+                data-i18n-alt="ap.sourceImage.alt"
+                draggable="false"
+                hidden>
+
+        <p
+                class="source-image-empty"
+                id="source-image-empty"
+                data-i18n="ap.sourceImage.empty">
             Select an entry to display its source JPEG.
         </p>
     </div>
 
     <div class="source-image-meta">
-        <span class="muted">File:</span>
-        <span id="source-image-filename">None selected</span>
+        <span
+                class="muted"
+                data-i18n="ap.sourceImage.file">
+            File:
+        </span>
+
+        <span
+                id="source-image-filename"
+                data-i18n="ap.sourceImage.noneSelected">
+            None selected
+        </span>
     </div>
 </section>

@@ -1,6 +1,7 @@
 import {initializeAccountsPayable} from "./accounting_entries.js";
 import {initializeNewEntries} from "./new_entries.js";
 import {initializeArPanel} from "./ar_invoice_import.js?v=currency-usd-2";
+import {initializeI18n} from "./i18n/i18n.js";
 
 
 const API_BASE = "/acct/v0";
@@ -103,6 +104,7 @@ function reportMetadataError(error) {
 
 
 export async function initializeApplication() {
+        initializeI18n();
     /*
      * AR is deliberately independent from AP/New Entries.
      *

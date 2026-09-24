@@ -1,208 +1,283 @@
 <section class="card primary-card">
     <div class="section-heading">
         <div>
-            <h2>Selected Entry Detail</h2>
-            <p class="muted">
+            <h2 data-i18n="ap.selectedEntry">
+                Selected Entry Detail
+            </h2>
+
+            <p
+                    class="muted"
+                    data-i18n="ap.selectedEntryHelp">
                 Select an entry from the list to inspect it. Unlock editing to modify raw fields.
                 Derived fields remain read-only and are recalculated by the backend.
             </p>
         </div>
 
         <div class="json-actions section-actions">
-            <button disabled id="unlock-entry-edit" type="button">Unlock Editing</button>
-            <button disabled id="save-entry-edit" type="button">Save Changes</button>
-            <button disabled id="cancel-entry-edit" type="button">Cancel</button>
+            <button
+                    disabled
+                    id="unlock-entry-edit"
+                    type="button"
+                    data-i18n="ap.unlockEditing">
+                Unlock Editing
+            </button>
+
+            <button
+                    disabled
+                    id="save-entry-edit"
+                    type="button"
+                    data-i18n="common.save">
+                Save Changes
+            </button>
+
+            <button
+                    disabled
+                    id="cancel-entry-edit"
+                    type="button"
+                    data-i18n="common.cancel">
+                Cancel
+            </button>
         </div>
     </div>
 
     <div class="json-actions">
-        <button disabled id="process-entry" type="button">Process Entry</button>
+        <button
+                disabled
+                id="process-entry"
+                type="button"
+                data-i18n="ap.processEntry">
+            Process Entry
+        </button>
     </div>
 
     <form class="detail-form form-grid" id="entry-detail-form">
         <input id="detail_id" name="id" type="hidden">
 
-        <h3 class="form-section-title">Editable Raw Fields</h3>
+        <h3
+                class="form-section-title"
+                data-i18n="ap.editableRawFields">
+            Editable Raw Fields
+        </h3>
 
         <label>
-            Type
-            <select disabled id="detail_entry_type" name="entry_type" required></select>
-        </label>
-
-        <label>
-            Category
-            <select disabled id="detail_category_code" name="category_code" required></select>
-        </label>
-
-        <label>
-            Tax Scope
-            <select disabled id="detail_tax_scope" name="tax_scope" required></select>
-        </label>
-
-        <label>
-            Counterparty
-            <input
-                disabled
-                id="detail_counterparty_name"
-                maxlength="255"
-                name="counterparty_name"
-                required
-            >
-        </label>
-
-        <label>
-            Payment Method
-            <select disabled id="detail_payment_method" name="payment_method" required></select>
-        </label>
-
-        <label>
-            Payment Date
-            <input
-                disabled
-                id="detail_payment_date"
-                name="payment_date"
-                required
-                type="date"
-            >
-        </label>
-
-        <label>
-            Amount Original
-            <input
-                disabled
-                id="detail_amount_original"
-                min="0.01"
-                name="amount_original"
-                required
-                step="0.01"
-                type="number"
-            >
-        </label>
-
-        <label>
-            Currency Original
+            <span data-i18n="ap.field.type">Type</span>
             <select
-                disabled
-                id="detail_currency_original"
-                name="currency_original"
-                required
-            ></select>
+                    disabled
+                    id="detail_entry_type"
+                    name="entry_type"
+                    required>
+            </select>
+        </label>
+
+        <label>
+            <span data-i18n="ap.field.category">Category</span>
+            <select
+                    disabled
+                    id="detail_category_code"
+                    name="category_code"
+                    required>
+            </select>
+        </label>
+
+        <label>
+            <span data-i18n="ap.field.taxScope">Tax Scope</span>
+            <select
+                    disabled
+                    id="detail_tax_scope"
+                    name="tax_scope"
+                    required>
+            </select>
+        </label>
+
+        <label>
+            <span data-i18n="ap.field.counterparty">Counterparty</span>
+            <input
+                    disabled
+                    id="detail_counterparty_name"
+                    maxlength="255"
+                    name="counterparty_name"
+                    required>
+        </label>
+
+        <label>
+            <span data-i18n="ap.field.paymentMethod">Payment Method</span>
+            <select
+                    disabled
+                    id="detail_payment_method"
+                    name="payment_method"
+                    required>
+            </select>
+        </label>
+
+        <label>
+            <span data-i18n="ap.field.paymentDate">Payment Date</span>
+            <input
+                    disabled
+                    id="detail_payment_date"
+                    name="payment_date"
+                    required
+                    type="date">
+        </label>
+
+        <label>
+            <span data-i18n="ap.field.amountOriginal">Amount Original</span>
+            <input
+                    disabled
+                    id="detail_amount_original"
+                    min="0.01"
+                    name="amount_original"
+                    required
+                    step="0.01"
+                    type="number">
+        </label>
+
+        <label>
+            <span data-i18n="ap.field.currencyOriginal">Currency Original</span>
+            <select
+                    disabled
+                    id="detail_currency_original"
+                    name="currency_original"
+                    required>
+            </select>
         </label>
 
         <label class="checkbox-row field-wide">
-            <input disabled id="detail_has_invoice" name="has_invoice" type="checkbox">
-            Has invoice
-        </label>
-
-        <label>
-            Invoice Number
             <input
-                disabled
-                id="detail_invoice_number"
-                maxlength="128"
-                name="invoice_number"
-            >
+                    disabled
+                    id="detail_has_invoice"
+                    name="has_invoice"
+                    type="checkbox">
+
+            <span data-i18n="ap.field.hasInvoice">
+                Has invoice
+            </span>
         </label>
 
         <label>
-            Invoice Date
-            <input disabled id="detail_invoice_date" name="invoice_date" type="date">
-        </label>
-
-        <label class="field-wide">
-            Remarks
-            <textarea disabled id="detail_remarks" name="remarks"></textarea>
-        </label>
-
-        <label class="field-wide">
-            Tags, comma-separated
-            <input disabled id="detail_tags" name="tags">
-        </label>
-
-        <label class="field-wide">
-            Source Filename
+            <span data-i18n="ap.field.invoiceNumber">Invoice Number</span>
             <input
-                disabled
-                id="detail_source_filename"
-                maxlength="255"
-                name="source_filename"
-            >
+                    disabled
+                    id="detail_invoice_number"
+                    maxlength="128"
+                    name="invoice_number">
         </label>
 
-        <h3 class="form-section-title">Derived / Read-only Fields</h3>
+        <label>
+            <span data-i18n="ap.field.invoiceDate">Invoice Date</span>
+            <input
+                    disabled
+                    id="detail_invoice_date"
+                    name="invoice_date"
+                    type="date">
+        </label>
+
+        <label class="field-wide">
+            <span data-i18n="ap.field.remarks">Remarks</span>
+            <textarea
+                    disabled
+                    id="detail_remarks"
+                    name="remarks">
+            </textarea>
+        </label>
+
+        <label class="field-wide">
+            <span data-i18n="ap.field.tags">Tags, comma-separated</span>
+            <input
+                    disabled
+                    id="detail_tags"
+                    name="tags">
+        </label>
+
+        <label class="field-wide">
+            <span data-i18n="ap.field.sourceFilename">Source Filename</span>
+            <input
+                    disabled
+                    id="detail_source_filename"
+                    maxlength="255"
+                    name="source_filename">
+        </label>
+
+        <h3
+                class="form-section-title"
+                data-i18n="ap.derivedReadOnlyFields">
+            Derived / Read-only Fields
+        </h3>
 
         <label>
-            Booking Year
+            <span data-i18n="ap.field.bookingYear">Booking Year</span>
             <input disabled id="detail_booking_year">
         </label>
 
         <label>
-            Amount Common
+            <span data-i18n="ap.field.amountCommon">Amount Common</span>
             <input disabled id="detail_amount_common">
         </label>
 
         <label>
-            Currency Common
+            <span data-i18n="ap.field.currencyCommon">Currency Common</span>
             <input disabled id="detail_currency_common">
         </label>
 
         <label>
-            Exchange Rate
+            <span data-i18n="ap.field.exchangeRate">Exchange Rate</span>
             <input disabled id="detail_exchange_rate">
         </label>
 
         <label>
-            Exchange Rate Date
+            <span data-i18n="ap.field.exchangeRateDate">Exchange Rate Date</span>
             <input disabled id="detail_exchange_rate_date">
         </label>
 
         <label>
-            VAT Rate Percent
+            <span data-i18n="ap.field.vatRatePercent">VAT Rate Percent</span>
             <input disabled id="detail_vat_rate_percent">
         </label>
 
         <label>
-            VAT Amount
+            <span data-i18n="ap.field.vatAmount">VAT Amount</span>
             <input disabled id="detail_vat_amount">
         </label>
 
         <label>
-            Deductible Percent
+            <span data-i18n="ap.field.deductiblePercent">Deductible Percent</span>
             <input disabled id="detail_deductible_percent">
         </label>
 
         <label>
-            Deductible Amount
+            <span data-i18n="ap.field.deductibleAmount">Deductible Amount</span>
             <input disabled id="detail_deductible_amount">
         </label>
 
         <label>
-            Deductible VAT Amount
+            <span data-i18n="ap.field.deductibleVatAmount">Deductible VAT Amount</span>
             <input disabled id="detail_deductible_vat_amount">
         </label>
 
         <label>
-            Write-off Method
+            <span data-i18n="ap.field.writeoffMethod">Write-off Method</span>
             <input disabled id="detail_writeoff_method">
         </label>
 
         <label>
-            Conversion Status
+            <span data-i18n="ap.field.conversionStatus">Conversion Status</span>
             <input disabled id="detail_conversion_status">
         </label>
 
         <label class="field-wide">
-            Conversion Note
-            <textarea disabled id="detail_conversion_note"></textarea>
+            <span data-i18n="ap.field.conversionNote">Conversion Note</span>
+            <textarea
+                    disabled
+                    id="detail_conversion_note">
+            </textarea>
         </label>
 
         <label>
-            Created At
+            <span data-i18n="ap.field.createdAt">Created At</span>
             <input disabled id="detail_created_at">
         </label>
 
         <label>
-            Updated At
+            <span data-i18n="ap.field.updatedAt">Updated At</span>
             <input disabled id="detail_updated_at">
         </label>
     </form>

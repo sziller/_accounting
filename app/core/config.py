@@ -5,7 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
+import os
 
+
+HOST = os.getenv("ACCOUNTING_HOST", "127.0.0.1")
+PORT = int(os.getenv("ACCOUNTING_PORT", "8000"))
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = PROJECT_ROOT / "data"
@@ -18,7 +22,7 @@ AR_COMMON_CURRENCY = "EUR"
 # Inclusive start of MNB EUR/HUF history, through today.
 MNB_EXCHANGE_RATE_START_DATE = date(2021, 1, 1)
 # Explicit independent EUR/USD history baseline; editable without changing MNB.
-ECB_EXCHANGE_RATE_START_DATE = date(2024, 1, 1)
+ECB_EXCHANGE_RATE_START_DATE = date(2022, 10, 1)
 # Synchronization lower-bound tolerance only, never interpolation/filling.
 ECB_EXCHANGE_RATE_LOWER_BOUNDARY_TOLERANCE_DAYS = 7
 

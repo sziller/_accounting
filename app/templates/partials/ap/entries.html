@@ -1,21 +1,46 @@
 <section class="card entries-card">
     <div class="entries-heading">
-        <h2>Entries</h2>
-        <p class="muted">Select a row to inspect its data and source image.</p>
+        <h2 data-i18n="ap.entries">
+            Entries
+        </h2>
+
+        <p
+                class="muted"
+                data-i18n="ap.entriesHelp">
+            Select a row to inspect its data and source image.
+        </p>
     </div>
 
     <div class="entries-table-wrap">
         <table class="entries-table">
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Counterparty</th>
-                    <th>Category</th>
-                    <th>Amount</th>
-                    <th>VAT</th>
-                    <th>Deductible</th>
+                    <th data-i18n="common.date">
+                        Date
+                    </th>
+
+                    <th data-i18n="ap.field.counterparty">
+                        Counterparty
+                    </th>
+
+                    <th data-i18n="ap.field.category">
+                        Category
+                    </th>
+
+                    <th data-i18n="common.amount">
+                        Amount
+                    </th>
+
+                    <th data-i18n="ap.entries.column.vat">
+                        VAT
+                    </th>
+
+                    <th data-i18n="ap.entries.column.deductible">
+                        Deductible
+                    </th>
                 </tr>
             </thead>
+
             <tbody id="entries-body"></tbody>
         </table>
     </div>

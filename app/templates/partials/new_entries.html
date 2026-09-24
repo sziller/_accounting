@@ -6,41 +6,41 @@
 
     <div class="input-workspace">
         <section class="card primary-card">
-            <h2>Manual New Entry</h2>
+            <h2 data-i18n="newEntries.manualTitle">Manual New Entry</h2>
 
             <form class="form-grid" id="entry-form">
                 <label>
-                    Type
+                    <span data-i18n="newEntries.field.type">Type</span>
                     <select id="entry_type" name="entry_type" required></select>
                 </label>
 
                 <label>
-                    Category
+                    <span data-i18n="newEntries.field.category">Category</span>
                     <select id="category_code" name="category_code" required></select>
                 </label>
 
                 <label>
-                    Tax Scope
+                    <span data-i18n="newEntries.field.taxScope">Tax Scope</span>
                     <select id="tax_scope" name="tax_scope" required></select>
                 </label>
 
                 <label>
-                    Counterparty
+                    <span data-i18n="newEntries.field.counterparty">Counterparty</span>
                     <input maxlength="255" name="counterparty_name" required>
                 </label>
 
                 <label>
-                    Payment Method
+                    <span data-i18n="newEntries.field.paymentMethod">Payment Method</span>
                     <select id="payment_method" name="payment_method" required></select>
                 </label>
 
                 <label>
-                    Payment Date
+                    <span data-i18n="newEntries.field.paymentDate">Payment Date</span>
                     <input name="payment_date" required type="date">
                 </label>
 
                 <label>
-                    Amount
+                    <span data-i18n="common.amount">Amount</span>
                     <input
                             min="0.01"
                             name="amount_original"
@@ -50,7 +50,7 @@
                 </label>
 
                 <label>
-                    Currency
+                    <span data-i18n="common.currency">Currency</span>
                     <select
                             id="currency_original"
                             name="currency_original"
@@ -59,31 +59,31 @@
 
                 <label class="checkbox-row field-wide">
                     <input checked name="has_invoice" type="checkbox">
-                    Has invoice
+                    <span data-i18n="newEntries.field.hasInvoice">Has invoice</span>
                 </label>
 
                 <label>
-                    Invoice Number
+                    <span data-i18n="newEntries.field.invoiceNumber">Invoice Number</span>
                     <input maxlength="128" name="invoice_number">
                 </label>
 
                 <label>
-                    Invoice Date
+                    <span data-i18n="newEntries.field.invoiceDate">Invoice Date</span>
                     <input name="invoice_date" type="date">
                 </label>
 
                 <label class="field-wide">
-                    Remarks
+                    <span data-i18n="common.remarks">Remarks</span>
                     <textarea name="remarks"></textarea>
                 </label>
 
                 <label class="field-wide">
-                    Tags, comma-separated
+                    <span data-i18n="newEntries.field.tags">Tags, comma-separated</span>
                     <input name="tags">
                 </label>
 
                 <div class="form-actions field-wide">
-                    <button type="submit">Save Entry</button>
+                    <button data-i18n="newEntries.saveEntry" type="submit">Save Entry</button>
                 </div>
             </form>
 
@@ -91,20 +91,19 @@
         </section>
 
         <section class="card utility-card">
-            <h2>Paste Entry JSON / Batch JSON</h2>
+            <h2 data-i18n="newEntries.jsonTitle">Paste Entry JSON / Batch JSON</h2>
 
             <p class="muted">
-                Paste either one entry object, a list of entry objects, or a batch object
-                shaped as <code>{ "entries": [...] }</code>. The frontend normalizes it and
-                submits it to the batch endpoint.
+                <span data-i18n="newEntries.jsonHelpBefore">Paste either one entry object, a list of entry objects, or a batch object shaped as</span>
+                <code>{ "entries": [...] }</code><span data-i18n="newEntries.jsonHelpAfter">. The frontend normalizes it and submits it to the batch endpoint.</span>
             </p>
 
             <div class="json-actions">
-                <button id="load-example-json" type="button">
+                <button data-i18n="newEntries.loadExample" id="load-example-json" type="button">
                     Load Example JSON
                 </button>
 
-                <button id="submit-json" type="button">
+                <button data-i18n="newEntries.submitJson" id="submit-json" type="button">
                     Submit JSON
                 </button>
             </div>
@@ -132,20 +131,20 @@
         </section>
 
         <section class="card utility-card">
-            <h2>AI Invoice Recognition Contract</h2>
+            <h2 data-i18n="newEntries.contractHeading">AI Invoice Recognition Contract</h2>
 
-            <p class="muted">
+            <p class="muted" data-i18n="newEntries.contractHelp">
                 Fetch the current dynamic JSON contract for invoice recognition/formalization.
                 Give this contract to the recognizer instance so it knows exactly which fields,
                 allowed values, and example payload the accounting backend currently expects.
             </p>
 
             <div class="json-actions">
-                <button id="fetch-contract-json" type="button">
+                <button data-i18n="newEntries.fetchCurrentContract" id="fetch-contract-json" type="button">
                     Fetch Current Contract
                 </button>
 
-                <button id="copy-contract-json" type="button">
+                <button data-i18n="newEntries.copyContractJson" id="copy-contract-json" type="button">
                     Copy Contract JSON
                 </button>
             </div>
@@ -153,6 +152,7 @@
             <textarea
                     class="json-paste-area"
                     id="contract-json-area"
+                    data-i18n-placeholder="newEntries.contractPlaceholder"
                     placeholder="Click 'Fetch Current Contract' to load the dynamic create-entry schema."
                     readonly
                     spellcheck="false"></textarea>

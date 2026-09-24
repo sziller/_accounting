@@ -8,7 +8,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from threading import Barrier
+from threading import Barrier, Event
 from unittest.mock import patch
 
 from fastapi import FastAPI
@@ -202,7 +202,134 @@ class ReceivablesTests(unittest.TestCase):
             self.assertEqual(self.request("PATCH", path, {field: "59"})[0], 400)
             self.assertEqual(self.request("PATCH", path, {"currency": "USD"})[0], 400)
             self.assertEqual(self.request("PATCH", path, {field: "60"})[0], 200)
-            self.assertEqual(self.request("DELETE", path)[0], 405)
+            if path.startswith("outgoing-invoices/"):
+                self.assertEqual(self.request("DELETE", path)[0], 405)
+
+    def test_delete_unallocated_and_missing_payment(self):
+        payment = self.payment()
+        path = "incoming-payments/" + payment["id"]
+        self.assertEqual(self.request("DELETE", path), (204, None))
+        self.assertEqual(self.request("GET", path)[0], 404)
+        self.assertEqual(self.request("GET", "incoming-payments"), (200, []))
+        self.assertEqual(self.request("DELETE", path)[0], 404)
+        self.assertEqual(self.request("DELETE", "incoming-payments/unknown")[0], 404)
+
+    def test_delete_allocated_payment_restores_invoice_balances(self):
+        for count in (1, 3):
+            with self.subTest(invoices=count):
+                payment = self.payment("1200")
+                invoices = [self.invoice(f"DELETE-{count}-{i}", "1000") for i in range(count)]
+                for invoice in invoices:
+                    self.allocate(invoice, payment, "400")
+                self.assertEqual(self.request("DELETE", "incoming-payments/" + payment["id"]), (204, None))
+                self.assertEqual(self.request("GET", "incoming-payments/" + payment["id"])[0], 404)
+                for invoice in invoices:
+                    status, current = self.request("GET", "outgoing-invoices/" + invoice["id"])
+                    self.assertEqual(status, 200)
+                    self.assertEqual(Decimal(current["paid_amount"]), 0)
+                    self.assertEqual(Decimal(current["outstanding_amount"]), 1000)
+                    self.assertEqual(current["payment_status"], "open")
+                    self.assertEqual(current["allocations"], [])
+                    self.assertEqual(current["updated_at"], invoice["updated_at"])
+                with Session(self.engine) as db:
+                    self.assertEqual(list(db.scalars(select(InvoicePaymentAllocationORM).filter_by(payment_id=payment["id"]))), [])
+
+    def test_delete_payment_preserves_other_payments_and_allocations(self):
+        invoice = self.invoice()
+        first, second = self.payment("40"), self.payment("60")
+        self.allocate(invoice, first, "40")
+        kept = self.allocate(invoice, second, "60")
+        before = self.request("GET", "incoming-payments/" + second["id"])
+        self.assertEqual(self.request("DELETE", "incoming-payments/" + first["id"]), (204, None))
+        current = self.request("GET", "outgoing-invoices/" + invoice["id"])[1]
+        self.assertEqual([a["id"] for a in current["allocations"]], [kept["id"]])
+        self.assertEqual(Decimal(current["paid_amount"]), 60)
+        self.assertEqual(Decimal(current["outstanding_amount"]), 40)
+        self.assertEqual(current["payment_status"], "partially_paid")
+        self.assertEqual(self.request("GET", "incoming-payments/" + second["id"]), before)
+
+    def test_delete_constraint_conflict_rolls_back_allocation_deletion(self):
+        invoice, payment = self.invoice(), self.payment()
+        allocation = self.allocate(invoice, payment, "40")
+        with self.engine.begin() as connection:
+            connection.execute(text("CREATE TABLE payment_reference (payment_id TEXT REFERENCES incoming_payments(id) ON DELETE RESTRICT)"))
+            connection.execute(text("INSERT INTO payment_reference VALUES (:id)"), {"id": payment["id"]})
+        self.assertEqual(self.request("DELETE", "incoming-payments/" + payment["id"])[0], 409)
+        current = self.request("GET", "incoming-payments/" + payment["id"])[1]
+        self.assertEqual([a["id"] for a in current["allocations"]], [allocation["id"]])
+        self.assertEqual(Decimal(current["allocated_amount"]), 40)
+
+    def test_delete_unexpected_failure_rolls_back(self):
+        invoice, payment = self.invoice(), self.payment()
+        allocation = self.allocate(invoice, payment, "40")
+
+        def fail_parent_delete(connection, cursor, statement, parameters, context, executemany):
+            if statement.startswith("DELETE FROM incoming_payments"):
+                raise RuntimeError("simulated server failure after allocation flush")
+
+        event.listen(self.engine, "before_cursor_execute", fail_parent_delete)
+        try:
+            with Session(self.engine) as db:
+                with self.assertRaisesRegex(RuntimeError, "simulated server failure"):
+                    ReceivablesService(db).delete_incoming_payment(payment["id"])
+                self.assertFalse(db.in_transaction())
+        finally:
+            event.remove(self.engine, "before_cursor_execute", fail_parent_delete)
+        current = self.request("GET", "incoming-payments/" + payment["id"])[1]
+        self.assertEqual([a["id"] for a in current["allocations"]], [allocation["id"]])
+
+    def test_delete_and_allocation_creation_serialize_in_both_orders(self):
+        for first in ("delete", "allocate"):
+            with self.subTest(first=first):
+                invoice, payment = self.invoice("RACE-" + first), self.payment()
+                self.allocate(invoice, payment, "10")
+                locked, attempted, release = Event(), Event(), Event()
+
+                def hold_writer(connection, cursor, statement, parameters, context, executemany):
+                    if statement == "BEGIN IMMEDIATE" and not locked.is_set():
+                        locked.set()
+                        if not release.wait(5):
+                            raise RuntimeError("writer was not released")
+
+                def competing_writer(connection, cursor, statement, parameters, context, executemany):
+                    if statement == "BEGIN IMMEDIATE" and locked.is_set():
+                        attempted.set()
+
+                def write(kind):
+                    with Session(self.engine) as db:
+                        service = ReceivablesService(db)
+                        try:
+                            if kind == "delete":
+                                service.delete_incoming_payment(payment["id"])
+                            else:
+                                service.create_allocation(InvoicePaymentAllocationCreateSchema(
+                                    invoice_id=invoice["id"], payment_id=payment["id"], amount_allocated="20"))
+                            return 204 if kind == "delete" else 201
+                        except ReceivablesError as exc:
+                            return exc.status_code
+
+                event.listen(self.engine, "after_cursor_execute", hold_writer)
+                event.listen(self.engine, "before_cursor_execute", competing_writer)
+                try:
+                    with ThreadPoolExecutor(max_workers=2) as executor:
+                        leading = executor.submit(write, first)
+                        self.assertTrue(locked.wait(5))
+                        trailing = executor.submit(write, "allocate" if first == "delete" else "delete")
+                        try:
+                            self.assertTrue(attempted.wait(5))
+                            self.assertFalse(trailing.done())
+                        finally:
+                            release.set()
+                        self.assertEqual(leading.result(timeout=5), 204 if first == "delete" else 201)
+                        self.assertEqual(trailing.result(timeout=5), 404 if first == "delete" else 204)
+                finally:
+                    release.set()
+                    event.remove(self.engine, "after_cursor_execute", hold_writer)
+                    event.remove(self.engine, "before_cursor_execute", competing_writer)
+                with Session(self.engine) as db:
+                    self.assertIsNone(db.get(IncomingPaymentORM, payment["id"]))
+                    self.assertEqual(list(db.scalars(select(InvoicePaymentAllocationORM).filter_by(payment_id=payment["id"]))), [])
+                    self.assertIsNotNone(db.get(OutgoingInvoiceORM, invoice["id"]))
 
     def test_status_precedence(self):
         yesterday = (date.today() - timedelta(days=1)).isoformat()

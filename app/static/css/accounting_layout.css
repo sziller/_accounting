@@ -508,6 +508,9 @@ tr.entry-row.is-selected { background: #e5edf5; }
 .ar-db-table tr.is-selected { background: #e5edf5; }
 .ar-pdf-button { background: transparent; border: 0; padding: 0; text-align: left; overflow-wrap: anywhere; }
 .ar-pdf-button.is-selected { font-weight: bold; }
+.ar-payment-delete { color: #a11717; border: 1px solid #a11717; background: #fff1f1; font-weight: bold; white-space: nowrap; }
+.ar-payment-delete:hover:not(:disabled) { color: white; background: #a11717; }
+.ar-payment-delete:disabled { opacity: 0.5; }
 .view-nav { flex-wrap: wrap; }
 @media (max-width: 900px) {
     .ar-workspace { grid-template-columns: minmax(0, 1fr); }

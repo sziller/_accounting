@@ -22,6 +22,7 @@ export function initializeArAllocations(refresh) {
     const status = document.getElementById('ar-allocation-status');
     const remaining = document.getElementById('ar-allocation-remaining');
     let invoice = null, payments = [], busy = false;
+    let blocked = false;
     // Only compare exact API decimal strings for the suggested minimum.
     const units = value => { const [a,b=''] = String(value).split('.'); return BigInt(a) * 1000000n + BigInt(b.padEnd(6,'0')); };
     function suggest() {
@@ -39,7 +40,7 @@ export function initializeArAllocations(refresh) {
         return result;
     }
     async function mutate(path, method, payload) {
-        if (busy) return;
+        if (busy || blocked) return;
         busy = true; render(); setText(status, () => t("allocations.saving"));
         try {
             await request(path, method, payload);
@@ -58,7 +59,7 @@ export function initializeArAllocations(refresh) {
         }));
         if (compatible.some(p => p.id === selectedPayment)) select.value = selectedPayment;
         const closed = !invoice || units(invoice.outstanding_amount) <= 0n;
-        select.disabled = amount.disabled = submit.disabled = busy || closed || !compatible.length;
+        select.disabled = amount.disabled = submit.disabled = busy || blocked || closed || !compatible.length;
         suggest();
         localizedText.delete(list);
         list.replaceChildren();
@@ -71,7 +72,7 @@ export function initializeArAllocations(refresh) {
             const row = document.createElement('li'); row.dataset.allocationId = allocation.id;
             const text = document.createElement('span');
             setText(text, () => `${allocation.payment_date} — ${allocation.amount_allocated} ${invoice.currency} — ${payment?.payer_name ?? ''} / ${payment?.bank_reference ?? ''} — ${t("allocations.paymentLabel")} ${allocation.payment_id} `);
-            const remove = document.createElement('button'); remove.type = 'button'; setText(remove, () => t("allocations.unallocate")); remove.disabled = busy;
+            const remove = document.createElement('button'); remove.type = 'button'; setText(remove, () => t("allocations.unallocate")); remove.disabled = busy || blocked;
             remove.addEventListener('click', () => {
                 if (window.confirm(t("allocations.confirmRemoval").replace("{amount}", () => allocation.amount_allocated).replace("{currency}", () => invoice.currency)))
                     void mutate(`/${encodeURIComponent(allocation.id)}`, 'DELETE');
@@ -86,5 +87,6 @@ export function initializeArAllocations(refresh) {
         void mutate('', 'POST', {invoice_id:invoice.id, payment_id:select.value, amount_allocated:amount.value});
     });
     render();
-    return {setInvoice(value) { invoice=value; render(); }, setPayments(value) { payments=value; render(); }};
+    return {setInvoice(value) { invoice=value; render(); }, setPayments(value) { payments=value; render(); },
+        isBusy() { return busy; }, setBlocked(value) { blocked=value; render(); }};
 }

@@ -1,7 +1,13 @@
+import {t} from "./i18n/i18n.js";
+
 const API_BASE = "/acct/v0";
 
 
 function formatApiError(error) {
+    if (error instanceof Error && error.renderMessage) {
+        return error.renderMessage();
+    }
+
     if (error && typeof error === "object" && "detail" in error) {
         return typeof error.detail === "string"
             ? error.detail
@@ -16,11 +22,18 @@ function formatApiError(error) {
 }
 
 
+function requestError(method, path) {
+    const renderMessage = () => t("newEntries.status.requestFailed")
+        .replace(/\{(method|path)\}/g, (_, key) => key === "method" ? method : path);
+    return Object.assign(new Error(renderMessage()), {renderMessage});
+}
+
+
 async function apiGet(path) {
     const response = await fetch(`${API_BASE}${path}`);
 
     if (!response.ok) {
-        throw new Error(`GET ${path} failed`);
+        throw requestError("GET", path);
     }
 
     return await response.json();
@@ -37,14 +50,14 @@ async function apiPost(path, payload) {
     const body = await response.json().catch(() => null);
 
     if (!response.ok) {
-        throw body || new Error(`POST ${path} failed`);
+        throw body || requestError("POST", path);
     }
 
     return body;
 }
 
 
-function fillSelect(selectId, values) {
+function fillSelect(selectId, values, translationPrefix = null) {
     const select = document.getElementById(selectId);
 
     if (!select) {
@@ -52,13 +65,24 @@ function fillSelect(selectId, values) {
         return;
     }
 
+    const selectedIndex = select.selectedIndex;
+    const selectedValue = select.value;
+    const hadOptions = select.options.length > 0;
     select.innerHTML = "";
 
     for (const value of values) {
         const option = document.createElement("option");
         option.value = value;
-        option.textContent = value;
+        option.textContent = translationPrefix
+            ? t(`${translationPrefix}.${value}`, value)
+            : value;
         select.appendChild(option);
+    }
+
+    // Preserve the draft, including an explicitly cleared selection.
+    if (hadOptions) {
+        if (selectedIndex === -1) select.selectedIndex = -1;
+        else select.value = selectedValue;
     }
 }
 
@@ -71,13 +95,22 @@ function fillCategorySelect(categories) {
         return;
     }
 
+    const selectedIndex = select.selectedIndex;
+    const selectedValue = select.value;
+    const hadOptions = select.options.length > 0;
     select.innerHTML = "";
 
     for (const category of categories) {
         const option = document.createElement("option");
         option.value = category.code;
-        option.textContent = `${category.code} — ${category.label}`;
+        option.textContent = `${category.code} — ${t(`metadata.category.${category.code}`, category.label)}`;
         select.appendChild(option);
+    }
+
+    // Preserve the draft, including an explicitly cleared selection.
+    if (hadOptions) {
+        if (selectedIndex === -1) select.selectedIndex = -1;
+        else select.value = selectedValue;
     }
 }
 
@@ -86,45 +119,45 @@ function validatePayloadClientSide(payload) {
     const errors = [];
 
     if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-        errors.push("Payload must be one JSON object.");
+        errors.push(t("newEntries.validation.payloadObject"));
         return errors;
     }
 
     if (!payload.entry_type) {
-        errors.push("Entry type is required.");
+        errors.push(t("newEntries.validation.entryTypeRequired"));
     }
 
     if (!payload.category_code) {
-        errors.push("Category is required.");
+        errors.push(t("newEntries.validation.categoryRequired"));
     }
 
     if (!payload.tax_scope) {
-        errors.push("Tax scope is required.");
+        errors.push(t("newEntries.validation.taxScopeRequired"));
     }
 
     if (!payload.counterparty_name) {
-        errors.push("Counterparty is required.");
+        errors.push(t("newEntries.validation.counterpartyRequired"));
     }
 
     if (!payload.payment_method) {
-        errors.push("Payment method is required.");
+        errors.push(t("newEntries.validation.paymentMethodRequired"));
     }
 
     if (!payload.payment_date) {
-        errors.push("Payment date is required.");
+        errors.push(t("newEntries.validation.paymentDateRequired"));
     }
 
     if (!payload.amount_original || Number(payload.amount_original) <= 0) {
-        errors.push("Amount must be greater than zero.");
+        errors.push(t("newEntries.validation.amountPositive"));
     }
 
     if (!payload.currency_original) {
-        errors.push("Currency is required.");
+        errors.push(t("newEntries.validation.currencyRequired"));
     }
 
     if (payload.has_invoice) {
         if (!payload.invoice_date) {
-            errors.push("Invoice date is required when invoice exists.");
+            errors.push(t("newEntries.validation.invoiceDateRequired"));
         }
     }
 
@@ -140,9 +173,8 @@ function normalizeToBatchPayload(rawPayload) {
     }
 
     if (!rawPayload || typeof rawPayload !== "object") {
-        throw new Error(
-            "Pasted JSON must be one object, a list of objects, or an object with an entries list."
-        );
+        const renderMessage = () => t("newEntries.validation.pastedShape");
+        throw Object.assign(new Error(renderMessage()), {renderMessage});
     }
 
     if (Array.isArray(rawPayload.entries)) {
@@ -163,17 +195,17 @@ function validateBatchPayloadClientSide(batchPayload) {
         || typeof batchPayload !== "object"
         || Array.isArray(batchPayload)
     ) {
-        errors.push("Batch payload must be one JSON object.");
+        errors.push(t("newEntries.validation.batchObject"));
         return errors;
     }
 
     if (!Array.isArray(batchPayload.entries)) {
-        errors.push("Batch payload must contain an entries list.");
+        errors.push(t("newEntries.validation.batchEntries"));
         return errors;
     }
 
     if (batchPayload.entries.length === 0) {
-        errors.push("Batch payload must contain at least one entry.");
+        errors.push(t("newEntries.validation.batchNotEmpty"));
         return errors;
     }
 
@@ -181,7 +213,7 @@ function validateBatchPayloadClientSide(batchPayload) {
         const entryErrors = validatePayloadClientSide(entry);
 
         for (const error of entryErrors) {
-            errors.push(`Entry ${index + 1}: ${error}`);
+            errors.push(`${t("newEntries.validation.entry")} ${index + 1}: ${error}`);
         }
     });
 
@@ -244,19 +276,23 @@ export function initializeNewEntries({
     const fetchContractJsonButton = document.getElementById("fetch-contract-json");
     const copyContractJsonButton = document.getElementById("copy-contract-json");
 
+    let renderMessage = null;
     function showMessage(text) {
-        message.textContent = text;
+        // Keep a renderer for frontend messages and raw text for external data.
+        renderMessage = typeof text === "function" ? text : () => text;
+        message.textContent = renderMessage();
     }
 
-    function populateMetadata() {
+    function populateMetadata({includeCurrency = true} = {}) {
         if (!metadata) {
-            throw new Error("New Entries metadata is required.");
+            const renderMessage = () => t("newEntries.status.metadataRequired");
+            throw Object.assign(new Error(renderMessage()), {renderMessage});
         }
 
-        fillSelect("entry_type", metadata.entry_types);
-        fillSelect("tax_scope", metadata.tax_scopes);
-        fillSelect("payment_method", metadata.payment_methods);
-        fillSelect("currency_original", metadata.currencies);
+        fillSelect("entry_type", metadata.entry_types, "metadata.entryType");
+        fillSelect("tax_scope", metadata.tax_scopes, "metadata.taxScope");
+        fillSelect("payment_method", metadata.payment_methods, "metadata.paymentMethod");
+        if (includeCurrency) fillSelect("currency_original", metadata.currencies);
         fillCategorySelect(metadata.categories);
     }
 
@@ -291,7 +327,7 @@ export function initializeNewEntries({
         const errors = validatePayloadClientSide(payload);
 
         if (errors.length > 0) {
-            showMessage(errors.join("\n"));
+            showMessage(() => validatePayloadClientSide(payload).join("\n"));
             return false;
         }
 
@@ -299,15 +335,15 @@ export function initializeNewEntries({
             const result = await apiPost("/entries", payload);
 
             showMessage(
-                `${successPrefix}: ${result.id}; `
-                + `invoice_number=${result.invoice_number ?? "missing"}`
+                () => `${t(successPrefix)}: ${result.id}; `
+                + `${t("newEntries.field.invoiceNumber")}=${result.invoice_number ?? t("newEntries.status.missing")}`
             );
 
             await onEntriesCreated();
 
             return true;
         } catch (error) {
-            showMessage(formatApiError(error));
+            showMessage(() => formatApiError(error));
             return false;
         }
     }
@@ -316,7 +352,7 @@ export function initializeNewEntries({
         const errors = validateBatchPayloadClientSide(batchPayload);
 
         if (errors.length > 0) {
-            showMessage(errors.join("\n"));
+            showMessage(() => validateBatchPayloadClientSide(batchPayload).join("\n"));
             return false;
         }
 
@@ -325,53 +361,55 @@ export function initializeNewEntries({
             const count = Array.isArray(result) ? result.length : 0;
 
             showMessage(
-                `${successPrefix}: ${count} entr${count === 1 ? "y" : "ies"} saved.`
+                () => `${t(successPrefix)}: ${count} ${t(count === 1
+                    ? "newEntries.status.entrySaved" : "newEntries.status.entriesSaved")}`
             );
 
             await onEntriesCreated();
 
             return true;
         } catch (error) {
-            showMessage(formatApiError(error));
+            showMessage(() => formatApiError(error));
             return false;
         }
     }
 
     async function fetchEntryCreateContract() {
         if (!contractJsonArea) {
-            showMessage("Contract display area is missing.");
+            showMessage(() => t("newEntries.status.contractAreaMissing"));
             return;
         }
 
         try {
             const contract = await apiGet("/entry-create-contract");
             contractJsonArea.value = JSON.stringify(contract, null, 2);
-            showMessage("Current AI invoice recognition contract loaded.");
+            showMessage(() => t("newEntries.status.contractLoaded"));
         } catch (error) {
-            showMessage(JSON.stringify(error, null, 2));
+            showMessage(() => error instanceof Error && error.renderMessage
+                ? error.renderMessage() : JSON.stringify(error, null, 2));
         }
     }
 
     async function copyContractJsonToClipboard() {
         if (!contractJsonArea) {
-            showMessage("Contract display area is missing.");
+            showMessage(() => t("newEntries.status.contractAreaMissing"));
             return;
         }
 
         if (!contractJsonArea.value.trim()) {
             showMessage(
-                "No contract JSON loaded yet. Click 'Fetch Current Contract' first."
+                () => t("newEntries.status.noContract")
             );
             return;
         }
 
         try {
             await navigator.clipboard.writeText(contractJsonArea.value);
-            showMessage("Contract JSON copied to clipboard.");
+            showMessage(() => t("newEntries.status.contractCopied"));
         } catch (error) {
             contractJsonArea.select();
             document.execCommand("copy");
-            showMessage("Contract JSON selected/copied using fallback.");
+            showMessage(() => t("newEntries.status.contractCopyFallback"));
         }
     }
 
@@ -379,7 +417,7 @@ export function initializeNewEntries({
         event.preventDefault();
 
         const payload = collectPayload();
-        const saved = await submitPayload(payload, "Saved entry");
+        const saved = await submitPayload(payload, "newEntries.status.savedEntry");
 
         if (saved) {
             form.reset();
@@ -395,21 +433,21 @@ export function initializeNewEntries({
             );
 
             showMessage(
-                "Batch example JSON loaded. Review and submit when ready."
+                () => t("newEntries.status.exampleLoaded")
             );
         });
     }
 
     if (submitJsonButton && jsonPasteArea) {
         submitJsonButton.addEventListener("click", async () => {
-            showMessage("Submitting pasted JSON...");
+            showMessage(() => t("newEntries.status.submittingJson"));
 
             let rawPayload;
 
             try {
                 rawPayload = JSON.parse(jsonPasteArea.value);
             } catch (error) {
-                showMessage(`Invalid JSON:\n${error.message}`);
+                showMessage(() => `${t("newEntries.validation.invalidJson")}\n${error.message}`);
                 return;
             }
 
@@ -418,13 +456,13 @@ export function initializeNewEntries({
             try {
                 batchPayload = normalizeToBatchPayload(rawPayload);
             } catch (error) {
-                showMessage(error.message);
+                showMessage(() => formatApiError(error));
                 return;
             }
 
             const saved = await submitBatchPayload(
                 batchPayload,
-                "Saved pasted JSON batch"
+                "newEntries.status.savedBatch"
             );
 
             if (saved) {
@@ -446,6 +484,11 @@ export function initializeNewEntries({
     }
 
     populateMetadata();
+
+    document.addEventListener("accounting:language-changed", () => {
+        populateMetadata({includeCurrency: false});
+        if (renderMessage) message.textContent = renderMessage();
+    });
 
     return {
         showMessage,

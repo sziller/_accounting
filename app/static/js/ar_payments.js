@@ -1,6 +1,6 @@
 import {t} from "./i18n/i18n.js";
 // Payment state is independent of the selected outgoing invoice.
-export function initializeArPayments(refreshInvoices, onPayments = () => {}) {
+export function initializeArPayments(refreshInvoices, onPayments = () => {}, deleteAndRefresh) {
     // Retain presentation renderers only; language changes must not refill forms
     // or run selection/allocation logic. All translations still come from t().
     const localizedText = new Map();
@@ -28,10 +28,12 @@ export function initializeArPayments(refreshInvoices, onPayments = () => {}) {
     let selected = null;
     let active = false;
     let busy = false;
+    let refreshAfterDelete = false;
     function controls() {
         fresh.disabled = refresh.disabled = busy;
         save.disabled = cancel.disabled = busy || !active;
         for (const key of fields) input(key).disabled = busy || !active;
+        for (const button of body.querySelectorAll('.ar-payment-delete')) button.disabled = busy;
         for (const row of body.querySelectorAll('[data-payment-id]')) {
             const chosen = row.dataset.paymentId === selected?.id;
             row.classList.toggle('is-selected', chosen);
@@ -50,7 +52,8 @@ export function initializeArPayments(refreshInvoices, onPayments = () => {}) {
         const response = await fetch(`/acct/v0/incoming-payments${path}`, {
             method, cache: 'no-store', ...(payload === undefined ? {} : {
                 headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)})});
-        const data = await response.json();
+        if (response.status === 204) return;
+        const data = await response.json().catch(() => ({}));
         if (!response.ok) {
             const detail = data.detail;
             throw new Error(typeof detail === 'string' ? detail : Array.isArray(detail)
@@ -62,15 +65,15 @@ export function initializeArPayments(refreshInvoices, onPayments = () => {}) {
     function tableMessage(message) {
         const row = document.createElement('tr');
         const cell = document.createElement('td');
-        cell.colSpan = 8;
+        cell.colSpan = 9;
         setText(cell, message);
         row.append(cell);
         body.replaceChildren(row);
     }
-    async function load(preserveDraft = false) {
+    async function load(preserveDraft = false, suppliedPayments) {
         tableMessage(() => t("payments.loading"));
         try {
-            const payments = await request();
+            const payments = suppliedPayments ?? await request();
             if (!Array.isArray(payments)) throw Object.assign(new Error(t("payments.invalidList")), {translationKey: "payments.invalidList"});
             body.replaceChildren(...payments.map(payment => {
                 const row = document.createElement('tr');
@@ -85,8 +88,21 @@ export function initializeArPayments(refreshInvoices, onPayments = () => {}) {
                 const choose = () => { if (!busy) { select(payment); setText(status, () => t("payments.selected")); } };
                 row.addEventListener('click', choose);
                 row.addEventListener('keydown', event => {
+                    if (event.target !== row) return;
                     if (['Enter', ' '].includes(event.key)) { event.preventDefault(); choose(); }
                 });
+                const actions = document.createElement('td');
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'ar-payment-delete';
+                remove.textContent = 'DELETE / ENTFERNEN';
+                remove.disabled = busy;
+                remove.addEventListener('click', event => {
+                    event.stopPropagation();
+                    void deletePayment(payment);
+                });
+                actions.append(remove);
+                row.append(actions);
                 return row;
             }));
             if (!payments.length) tableMessage(() => t("payments.empty"));
@@ -104,10 +120,42 @@ export function initializeArPayments(refreshInvoices, onPayments = () => {}) {
             return false;
         }
     }
+    async function refreshDeletedPayment(mutate = async () => {}) {
+        const refreshed = await deleteAndRefresh(mutate, request, data => load(false, data));
+        refreshAfterDelete = !refreshed;
+        if (!refreshed) {
+            select(null);
+            onPayments([]);
+            tableMessage(() => 'Payment deleted, but AR data could not be refreshed. Refresh Payments to retry.');
+        }
+        setText(status, () => refreshed ? 'Incoming payment deleted.'
+            : 'Payment deleted, but AR data could not be refreshed. Refresh Payments to retry.');
+    }
+    async function deletePayment(payment) {
+        if (busy) return;
+        const message = payment.allocations?.length || Number(payment.allocated_amount) > 0
+            ? 'Delete this payment and remove its invoice allocation(s)?\nThe affected invoice balances will be recalculated.'
+            : 'Delete this incoming payment?';
+        if (!window.confirm(message)) return;
+        busy = true; controls();
+        try {
+            await refreshDeletedPayment(async () => {
+                await request(`/${encodeURIComponent(payment.id)}`, 'DELETE');
+                if (selected?.id === payment.id) select(null);
+            });
+        } catch (error) {
+            setText(status, () => `Could not delete incoming payment: ${error.message}`);
+        } finally { busy = false; controls(); }
+    }
     async function reload() {
         if (busy) return;
         busy = true; controls();
-        try { await load(); } finally { busy = false; controls(); }
+        try {
+            if (refreshAfterDelete) await refreshDeletedPayment();
+            else await load();
+        } catch (error) {
+            setText(status, () => `Could not refresh AR data: ${error.message}`);
+        } finally { busy = false; controls(); }
     }
     fresh.addEventListener('click', () => { select(null, true); setText(status, () => t("payments.enterDetails")); });
     cancel.addEventListener('click', () => { select(selected); setText(status, () => t("ar.editCancelled")); });

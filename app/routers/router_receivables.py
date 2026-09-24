@@ -59,6 +59,8 @@ class ReceivablesRouter(APIRouter):
                                status_code=201 if method == "POST" else 200)
         self.add_api_route("/v0/invoice-payment-allocations/{id}", self.delete_allocation,
                            methods=["DELETE"], status_code=204, response_class=Response)
+        self.add_api_route("/v0/incoming-payments/{id}", self.delete_payment,
+                           methods=["DELETE"], status_code=204, response_class=Response)
 
     def recognition_events(self, id: str, db: Session = Depends(get_db_session)):
         try:
@@ -113,6 +115,10 @@ class ReceivablesRouter(APIRouter):
 
     def create_allocation(self, payload: InvoicePaymentAllocationCreateSchema, db: Session = Depends(get_db_session)):
         return _call(db, "create_allocation", payload)
+
+    def delete_payment(self, id: str, db: Session = Depends(get_db_session)):
+        _call(db, "delete_incoming_payment", id)
+        return Response(status_code=204)
 
     def delete_allocation(self, id: str, db: Session = Depends(get_db_session)):
         _call(db, "delete_allocation", id)

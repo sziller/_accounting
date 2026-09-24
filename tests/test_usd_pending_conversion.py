@@ -2,8 +2,10 @@
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
+import re
 import unittest
 from unittest.mock import patch
+from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from app.db.models import Base
@@ -97,10 +99,21 @@ class PendingConversionTests(unittest.TestCase):
         self.assertEqual(report.converted, 1)
 
     def test_button_labels_and_ar_restored_label(self):
-        import re
-        html = Path('app/templates/index.html').read_text()
+        app_dir = Path(__file__).resolve().parents[1] / 'app'
+        # Render the entry template so nested includes participate in the check.
+        # Missing includes/variables must fail rather than silently omit controls.
+        templates = Environment(loader=FileSystemLoader(app_dir / 'templates'),
+                                autoescape=select_autoescape(), undefined=StrictUndefined)
+        html = templates.get_template('index.html').render()
         for identifier, expected in [('reprocess-pending-conversions', 'Process Entries'), ('normalize-ar-invoices', 'Process Entries'), ('process-ar-entry', 'Process Entry')]:
-            label = re.search(r'<button\b[^>]*\bid="' + identifier + r'"[^>]*>(.*?)</button>', html, re.S).group(1).strip()
-            self.assertEqual(label, expected)
-        self.assertIn('normalize.textContent = "Process Entries"',
-                      Path('app/static/js/ar_invoice_import.js').read_text())
+            with self.subTest(control=identifier):
+                labels = re.findall(r'<button\b[^>]*\bid="' + re.escape(identifier)
+                                    + r'"[^>]*>(.*?)</button>', html, re.S)
+                self.assertEqual(len(labels), 1, f'Expected exactly one rendered {identifier} button')
+                self.assertEqual(' '.join(labels[0].split()), expected)
+        # Processing restores a translated label now, rather than a literal
+        # textContent assignment. Protect both the finally block and English text.
+        self.assertRegex((app_dir / 'static/js/ar_invoice_import.js').read_text(),
+                         r'finally\s*\{[^}]*setText\(normalize,\s*\(\)\s*=>\s*t\("ar\.processEntries"\)\)')
+        self.assertRegex((app_dir / 'static/js/i18n/en.js').read_text(),
+                         r'"ar\.processEntries"\s*:\s*"Process Entries"')

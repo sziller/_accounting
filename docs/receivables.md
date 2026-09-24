@@ -67,16 +67,25 @@ All paths have the prefix `/acct/v0`:
 | GET, POST | `/outgoing-invoices` |
 | GET, PATCH | `/outgoing-invoices/{id}` |
 | GET, POST | `/incoming-payments` |
-| GET, PATCH | `/incoming-payments/{id}` |
+| GET, PATCH, DELETE | `/incoming-payments/{id}` |
 | POST | `/invoice-payment-allocations` |
 | DELETE | `/invoice-payment-allocations/{id}` |
 
-POST returns 201, GET/PATCH 200, allocation DELETE 204. Invalid schema or merged
+POST returns 201, GET/PATCH 200, payment/allocation DELETE 204. Invalid schema or merged
 PATCH data returns 422; missing IDs return 404; invalid allocation/update business
 rules return 400; duplicate invoice numbers/database conflicts return 409. A
-SQLite lock timeout returns 503 with a retry message. There are no destructive
-invoice/payment DELETE endpoints. Allocation removal does not delete the facts
-of the invoice/payment; no reconciliation audit log exists in this version.
+SQLite lock timeout returns 503 with a retry message. There is no invoice DELETE
+endpoint. Payment deletion removes that payment and all its allocations, leaving
+every invoice and every other payment's allocations intact. Allocation removal
+alone does not delete its invoice/payment; no reconciliation audit log exists.
+
+The Incoming Payments table offers `DELETE / ENTFERNEN` on every row, with a
+native confirmation explaining allocation removal when applicable. A failed
+DELETE retains the row and shows an error. After success, both payment and invoice
+lists are fetched before either is published; selection and allocation controls
+are updated from those facts. If either refresh fails, both datasets and editors
+are cleared with an error; Refresh Payments retries both lists without repeating
+the DELETE.
 
 Create/update/read schemas are `OutgoingInvoice{Create,Update,Read}Schema` and
 `IncomingPayment{Create,Update,Read}Schema`. Allocations have
@@ -121,6 +130,13 @@ Every service write owns a fresh session transaction, starting with SQLite
 `BEGIN IMMEDIATE` before reading invoice/payment balances. This serializes writers
 across connections/processes, including PATCH and allocation removal. The lock is
 held through validation, insert/update/delete, and commit. Exceptions roll back.
+Payment deletion uses that same lock before loading the payment or allocations.
+It explicitly deletes and flushes the allocations before deleting the payment to
+satisfy the unchanged `ON DELETE RESTRICT` foreign key, then commits once. Flush
+does not commit: any failure restores the payment and allocations together.
+Concurrent allocation creation either commits first and is included in deletion,
+or waits for deletion and fails with 404. Invoice paid/outstanding amounts and
+payment status are derived again on read; deletion never writes invoice fields.
 Application callers must use this service and a fresh request/session transaction;
 raw external SQL does not enforce cross-row balance/currency business rules.
 

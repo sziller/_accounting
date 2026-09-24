@@ -176,11 +176,11 @@ export function initializeArPanel() {
         }
     }
 
-    async function loadOutgoingInvoices(preserveDraft = false) {
+    async function loadOutgoingInvoices(preserveDraft = false, suppliedInvoices) {
         setText(dbCount, () => t("ar.loading"));
         dbState(() => t("ar.loadingInvoices"));
         try {
-            const response = await request("");
+            const response = suppliedInvoices ?? await request("");
             if (!Array.isArray(response)) throw new Error(t("ar.invalidInvoiceList"));
             invoices = sortInvoices(response);
             setText(dbCount, () => `${invoices.length} ${t(invoices.length === 1 ? "ar.record" : "ar.records")}`);
@@ -349,7 +349,35 @@ export function initializeArPanel() {
         try { return await loadOutgoingInvoices(true); }
         finally { setBusy(false); }
     }
-    const payments = initializeArPayments(refreshInvoiceFacts, data => allocations?.setPayments(data));
+    async function deletePaymentAndRefresh(mutate, fetchPayments, renderPayments) {
+        if (busy || allocations.isBusy()) throw new Error('AR data is busy; retry the deletion.');
+        setBusy(true);
+        allocations.setBlocked(true);
+        try {
+            // A rejected DELETE leaves all currently displayed data intact.
+            await mutate();
+            try {
+                // Stage both lists before publishing either; never show a mixed refresh.
+                const results = await Promise.allSettled([request(''), fetchPayments()]);
+                if (results.some(result => result.status !== 'fulfilled' || !Array.isArray(result.value)))
+                    throw new Error('AR refresh failed');
+                if (!await loadOutgoingInvoices(true, results[0].value)
+                    || !await renderPayments(results[1].value)) throw new Error('AR rendering failed');
+                return true;
+            } catch {
+                invoices = [];
+                selectInvoice(null);
+                setText(dbCount, () => t('ar.unavailable'));
+                dbState(() => t('ar.invoiceLoadFailed'));
+                allocations.setPayments([]);
+                return false;
+            }
+        } finally {
+            allocations.setBlocked(false);
+            setBusy(false);
+        }
+    }
+    const payments = initializeArPayments(refreshInvoiceFacts, data => allocations?.setPayments(data), deletePaymentAndRefresh);
     allocations = initializeArAllocations(async () => {
         const results = await Promise.all([refreshInvoiceFacts(), payments.refresh()]);
         return results.every(Boolean);

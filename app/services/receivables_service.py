@@ -300,6 +300,17 @@ class ReceivablesService:
             result = self._payment_read(row)
         return result
 
+    def delete_incoming_payment(self, identity):
+        """Remove only this payment and its allocations in one serialized write."""
+        with self._write():
+            payment = self._get(IncomingPaymentORM, identity)
+            for allocation in self._allocations(payment_id=payment.id):
+                self.db.delete(allocation)
+            # RESTRICT requires child DELETEs before the parent DELETE. Flush is
+            # not a commit: a later failure restores every allocation as well.
+            self.db.flush()
+            self.db.delete(payment)
+
     def create_allocation(self, payload: InvoicePaymentAllocationCreateSchema):
         with self._write():
             invoice = self._get(OutgoingInvoiceORM, payload.invoice_id)

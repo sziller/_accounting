@@ -1,7 +1,7 @@
 import {initializeAccountsPayable} from "./accounting_entries.js";
 import {initializeNewEntries} from "./new_entries.js";
 import {initializeArPanel} from "./ar_invoice_import.js?v=currency-usd-2";
-import {initializeI18n} from "./i18n/i18n.js";
+import {initializeI18n, t} from "./i18n/i18n.js";
 
 
 const API_BASE = "/acct/v0";
@@ -11,7 +11,10 @@ async function apiGet(path) {
     const response = await fetch(`${API_BASE}${path}`);
 
     if (!response.ok) {
-        throw new Error(`GET ${path} failed`);
+        throw Object.assign(new Error(`GET ${path} failed`), {
+            renderMessage: () => t("newEntries.status.requestFailed")
+                .replace(/\{(method|path)\}/g, (_, key) => key === "method" ? "GET" : path),
+        });
     }
 
     return await response.json();
@@ -30,6 +33,27 @@ function formatError(error) {
     }
 
     return JSON.stringify(error, null, 2);
+}
+
+
+function showNewEntriesStartupError(key, error) {
+    const status = document.getElementById("message");
+    if (!status) return;
+
+    const render = () => `${t(key)}\n${error instanceof Error && error.renderMessage
+        ? error.renderMessage() : formatError(error)}`;
+    let displayed = render();
+    status.textContent = displayed;
+    const repaint = () => {
+        // Stop owning the message once the feature has replaced this error.
+        if (status.textContent !== displayed) {
+            document.removeEventListener("accounting:language-changed", repaint);
+            return;
+        }
+        displayed = render();
+        status.textContent = displayed;
+    };
+    document.addEventListener("accounting:language-changed", repaint);
 }
 
 
@@ -65,12 +89,7 @@ function reportFeatureError(feature, error) {
     }
 
     if (feature === "New Entries") {
-        const status = document.getElementById("message");
-
-        if (status) {
-            status.textContent =
-                `New Entries initialization failed:\n${text}`;
-        }
+        showNewEntriesStartupError("newEntries.status.initializationFailed", error);
     }
 }
 
@@ -97,8 +116,7 @@ function reportMetadataError(error) {
     }
 
     if (newEntriesStatus) {
-        newEntriesStatus.textContent =
-            `Unable to load accounting metadata:\n${text}`;
+        showNewEntriesStartupError("newEntries.status.metadataFailed", error);
     }
 }
 

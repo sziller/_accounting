@@ -1,15 +1,15 @@
 <section class="card ar-invoices-card">
     <div class="ar-file-browser-heading">
-        <h2>Outgoing Invoices</h2>
+        <h2 data-i18n="ar.outgoingInvoices">Outgoing Invoices</h2>
         <span class="muted" id="ar-invoice-db-count">Loading…</span>
     </div>
 
     <div class="json-actions ar-invoice-navigation">
-        <button disabled id="previous-ar-invoice" type="button">
+        <button data-i18n="ar.previousInvoice" disabled id="previous-ar-invoice" type="button">
             Previous Invoice
         </button>
 
-        <button disabled id="next-ar-invoice" type="button">
+        <button data-i18n="ar.nextInvoice" disabled id="next-ar-invoice" type="button">
             Next Invoice
         </button>
     </div>
@@ -18,23 +18,23 @@
         <table class="ar-db-table">
             <thead>
                 <tr>
-                    <th>Invoice Number</th>
-                    <th>Invoice Date</th>
-                    <th>Customer</th>
-                    <th>Original Currency</th>
-                    <th>Original Gross</th>
-                    <th>Paid (original)</th>
-                    <th>Outstanding (original)</th>
-                    <th>Status</th>
-                    <th>PDF Filename</th>
-                    <th>Common Currency</th>
-                    <th>Common Amount</th>
+                    <th data-i18n="ar.field.invoiceNumber">Invoice Number</th>
+                    <th data-i18n="ar.field.invoiceDate">Invoice Date</th>
+                    <th data-i18n="ar.column.customer">Customer</th>
+                    <th data-i18n="ar.field.currencyOriginal">Original Currency</th>
+                    <th data-i18n="ar.column.gross">Original Gross</th>
+                    <th data-i18n="ar.column.paid">Paid (original)</th>
+                    <th data-i18n="ar.column.outstanding">Outstanding (original)</th>
+                    <th data-i18n="common.status">Status</th>
+                    <th data-i18n="ar.field.pdfFilename">PDF Filename</th>
+                    <th data-i18n="ar.field.currencyCommon">Common Currency</th>
+                    <th data-i18n="ar.field.amountCommon">Common Amount</th>
                 </tr>
             </thead>
 
             <tbody id="ar-invoice-db-body">
                 <tr>
-                    <td class="muted" colspan="11">
+                    <td data-i18n="ar.loadingInvoices" class="muted" colspan="11">
                         Loading outgoing invoices…
                     </td>
                 </tr>

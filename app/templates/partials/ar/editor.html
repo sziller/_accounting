@@ -1,29 +1,29 @@
 <section class="card">
-    <h2>Selected Outgoing Invoice</h2>
+    <h2 data-i18n="ar.selectedInvoice">Selected Outgoing Invoice</h2>
 
-    <button disabled id="process-ar-entry" type="button">
+    <button data-i18n="ar.processEntry" disabled id="process-ar-entry" type="button">
         Process Entry
     </button>
 
-    <p class="muted">
+    <p data-i18n="ar.editorHelp" class="muted">
         Select an invoice from the table. Unlock editing to change persisted fields.
     </p>
 
     <div class="json-actions ar-editor-actions">
-        <button disabled id="unlock-ar-invoice-edit" type="button">
+        <button data-i18n="ar.unlockEditing" disabled id="unlock-ar-invoice-edit" type="button">
             Unlock Editing
         </button>
-        <button disabled id="save-ar-invoice-edit" type="button">
+        <button data-i18n="common.save" disabled id="save-ar-invoice-edit" type="button">
             Save Changes
         </button>
-        <button disabled id="cancel-ar-invoice-edit" type="button">
+        <button data-i18n="common.cancel" disabled id="cancel-ar-invoice-edit" type="button">
             Cancel
         </button>
     </div>
 
     <form class="form-grid" id="ar-invoice-detail-form">
         <label>
-            Invoice Number
+            <span data-i18n="ar.field.invoiceNumber">Invoice Number</span>
             <input
                     disabled
                     id="ar-invoice-invoice_number"
@@ -33,7 +33,7 @@
         </label>
 
         <label>
-            Invoice Date
+            <span data-i18n="ar.field.invoiceDate">Invoice Date</span>
             <input
                     disabled
                     id="ar-invoice-invoice_date"
@@ -43,7 +43,7 @@
         </label>
 
         <label>
-            Due Date
+            <span data-i18n="ar.field.dueDate">Due Date</span>
             <input
                     disabled
                     id="ar-invoice-due_date"
@@ -52,7 +52,7 @@
         </label>
 
         <label>
-            Payment Received Date
+            <span data-i18n="ar.field.paymentDate">Payment Received Date</span>
             <input
                     disabled
                     id="ar-invoice-payment_date"
@@ -61,7 +61,7 @@
         </label>
 
         <label>
-            Customer Name
+            <span data-i18n="ar.field.customerName">Customer Name</span>
             <input
                     disabled
                     id="ar-invoice-customer_name"
@@ -71,7 +71,7 @@
         </label>
 
         <label>
-            Customer Reference
+            <span data-i18n="ar.field.customerReference">Customer Reference</span>
             <input
                     disabled
                     id="ar-invoice-customer_reference"
@@ -80,7 +80,7 @@
         </label>
 
         <label>
-            Original Currency
+            <span data-i18n="ar.field.currencyOriginal">Original Currency</span>
             <input
                     disabled
                     id="ar-invoice-currency_original"
@@ -92,7 +92,7 @@
         </label>
 
         <label>
-            Original Net Amount
+            <span data-i18n="ar.field.netAmount">Original Net Amount</span>
             <input
                     disabled
                     id="ar-invoice-net_amount"
@@ -102,7 +102,7 @@
         </label>
 
         <label>
-            Original VAT Amount
+            <span data-i18n="ar.field.vatAmount">Original VAT Amount</span>
             <input
                     disabled
                     id="ar-invoice-vat_amount"
@@ -112,7 +112,7 @@
         </label>
 
         <label>
-            Original Gross Amount
+            <span data-i18n="ar.field.grossAmount">Original Gross Amount</span>
             <input
                     disabled
                     id="ar-invoice-amount_original"
@@ -123,7 +123,7 @@
         </label>
 
         <label>
-            Common Currency
+            <span data-i18n="ar.field.currencyCommon">Common Currency</span>
             <input
                     disabled
                     id="ar-invoice-currency_common"
@@ -135,7 +135,7 @@
         </label>
 
         <label>
-            PDF Filename
+            <span data-i18n="ar.field.pdfFilename">PDF Filename</span>
             <input
                     disabled
                     id="ar-invoice-pdf_filename"
@@ -144,7 +144,7 @@
         </label>
 
         <label>
-            PDF SHA-256
+            <span data-i18n="ar.field.pdfSha256">PDF SHA-256</span>
             <input
                     disabled
                     id="ar-invoice-pdf_sha256"
@@ -153,28 +153,28 @@
         </label>
 
         <label class="field-wide">
-            Remarks
+            <span data-i18n="common.remarks">Remarks</span>
             <textarea
                     disabled
                     id="ar-invoice-remarks"
                     name="remarks"></textarea>
         </label>
 
-        <h3 class="form-section-title">
+        <h3 data-i18n="ar.derivedFields" class="form-section-title">
             Derived / Read-only Fields
         </h3>
 
         <label>
-            Common Amount
+            <span data-i18n="ar.field.amountCommon">Common Amount</span>
             <input
                     readonly
                     id="ar-invoice-amount_common"
                     type="text"
-                    placeholder="Pending normalization">
+                    data-i18n-placeholder="ar.pendingNormalization" placeholder="Pending normalization">
         </label>
 
         <label>
-            Paid (original currency)
+            <span data-i18n="ar.field.paid">Paid (original currency)</span>
             <input
                     readonly
                     id="ar-invoice-paid_amount"
@@ -182,7 +182,7 @@
         </label>
 
         <label>
-            Outstanding (original currency)
+            <span data-i18n="ar.field.outstanding">Outstanding (original currency)</span>
             <input
                     readonly
                     id="ar-invoice-outstanding_amount"
@@ -190,7 +190,7 @@
         </label>
 
         <label>
-            Payment Status
+            <span data-i18n="ar.field.paymentStatus">Payment Status</span>
             <input
                     readonly
                     id="ar-invoice-payment_status"
@@ -198,7 +198,7 @@
         </label>
 
         <label>
-            Created At
+            <span data-i18n="ar.field.createdAt">Created At</span>
             <input
                     readonly
                     id="ar-invoice-created_at"
@@ -206,7 +206,7 @@
         </label>
 
         <label>
-            Updated At
+            <span data-i18n="ar.field.updatedAt">Updated At</span>
             <input
                     readonly
                     id="ar-invoice-updated_at"

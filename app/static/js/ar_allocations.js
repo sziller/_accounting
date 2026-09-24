@@ -1,5 +1,19 @@
+import {t} from "./i18n/i18n.js";
 // Allocation facts come from the backend; no recognition/balance calculations.
 export function initializeArAllocations(refresh) {
+    // Retain presentation renderers only; language changes must not refill forms
+    // or run selection/allocation logic. All translations still come from t().
+    const localizedText = new Map();
+    function setText(element, render) {
+        localizedText.set(element, render);
+        element.textContent = render();
+    }
+    document.addEventListener('accounting:language-changed', () => {
+        for (const [element, render] of localizedText) {
+            if (element.isConnected) element.textContent = render();
+            else localizedText.delete(element);
+        }
+    });
     const form = document.getElementById('ar-allocation-form');
     const list = document.getElementById('ar-allocation-list');
     const select = document.getElementById('ar-allocation-payment');
@@ -12,7 +26,7 @@ export function initializeArAllocations(refresh) {
     const units = value => { const [a,b=''] = String(value).split('.'); return BigInt(a) * 1000000n + BigInt(b.padEnd(6,'0')); };
     function suggest() {
         const payment = payments.find(p => p.id === select.value);
-        remaining.textContent = payment ? `Available: ${payment.unallocated_amount} ${payment.currency}` : 'No compatible payment available.';
+        setText(remaining, () => payment ? t("allocations.available").replace("{amount}", () => payment.unallocated_amount).replace("{currency}", () => payment.currency) : t("allocations.noCompatible"));
         amount.value = payment && invoice ? (units(payment.unallocated_amount) < units(invoice.outstanding_amount)
             ? payment.unallocated_amount : invoice.outstanding_amount) : '';
     }
@@ -26,12 +40,12 @@ export function initializeArAllocations(refresh) {
     }
     async function mutate(path, method, payload) {
         if (busy) return;
-        busy = true; render(); status.textContent = 'Saving allocation…';
+        busy = true; render(); setText(status, () => t("allocations.saving"));
         try {
             await request(path, method, payload);
             const refreshed = await refresh();
-            status.textContent = 'Allocation saved.' + (refreshed ? '' : ' Refresh failed or deferred; use Refresh.');
-        } catch (error) { status.textContent = `Allocation failed: ${error.message}`; }
+            setText(status, () => t("allocations.saved") + (refreshed ? '' : t("allocations.refreshFailed")));
+        } catch (error) { setText(status, () => t("allocations.failed").replace("{error}", () => error.message)); }
         finally { busy = false; render(); }
     }
     function render() {
@@ -39,26 +53,27 @@ export function initializeArAllocations(refresh) {
         const compatible = invoice ? payments.filter(p => p.currency === invoice.currency && units(p.unallocated_amount) > 0n) : [];
         select.replaceChildren(...compatible.map(p => {
             const option = document.createElement('option'); option.value = p.id;
-            option.textContent = `${p.payment_date} — ${p.payer_name ?? ''} / ${p.bank_reference ?? ''} — ${p.amount} ${p.currency} — available ${p.unallocated_amount} (${p.id})`;
+            setText(option, () => `${p.payment_date} — ${p.payer_name ?? ''} / ${p.bank_reference ?? ''} — ${p.amount} ${p.currency} — ${t("allocations.availableLabel")} ${p.unallocated_amount} (${p.id})`);
             return option;
         }));
         if (compatible.some(p => p.id === selectedPayment)) select.value = selectedPayment;
         const closed = !invoice || units(invoice.outstanding_amount) <= 0n;
         select.disabled = amount.disabled = submit.disabled = busy || closed || !compatible.length;
         suggest();
+        localizedText.delete(list);
         list.replaceChildren();
         if (!invoice || !invoice.allocations?.length) {
-            list.textContent = invoice ? 'No allocations.' : 'Select an outgoing invoice.';
+            setText(list, () => invoice ? t("allocations.noAllocations") : t("ar.selectInvoice"));
             return;
         }
         for (const allocation of invoice.allocations) {
             const payment = payments.find(p => p.id === allocation.payment_id);
             const row = document.createElement('li'); row.dataset.allocationId = allocation.id;
             const text = document.createElement('span');
-            text.textContent = `${allocation.payment_date} — ${allocation.amount_allocated} ${invoice.currency} — ${payment?.payer_name ?? ''} / ${payment?.bank_reference ?? ''} — payment ${allocation.payment_id} `;
-            const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = 'Unallocate'; remove.disabled = busy;
+            setText(text, () => `${allocation.payment_date} — ${allocation.amount_allocated} ${invoice.currency} — ${payment?.payer_name ?? ''} / ${payment?.bank_reference ?? ''} — ${t("allocations.paymentLabel")} ${allocation.payment_id} `);
+            const remove = document.createElement('button'); remove.type = 'button'; setText(remove, () => t("allocations.unallocate")); remove.disabled = busy;
             remove.addEventListener('click', () => {
-                if (window.confirm(`Remove allocation of ${allocation.amount_allocated} ${invoice.currency}? The payment will remain.`))
+                if (window.confirm(t("allocations.confirmRemoval").replace("{amount}", () => allocation.amount_allocated).replace("{currency}", () => invoice.currency)))
                     void mutate(`/${encodeURIComponent(allocation.id)}`, 'DELETE');
             });
             row.append(text, remove); list.append(row);

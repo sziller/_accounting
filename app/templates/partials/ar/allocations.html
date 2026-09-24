@@ -1,17 +1,17 @@
-<h3>Payments / Allocations</h3>
+<h3 data-i18n="allocations.title">Payments / Allocations</h3>
 
 <ul id="ar-allocation-list"></ul>
 
 <form id="ar-allocation-form" class="form-grid">
     <label>
-        Incoming payment
+        <span data-i18n="allocations.incomingPayment">Incoming payment</span>
         <select id="ar-allocation-payment"></select>
     </label>
 
     <p id="ar-allocation-remaining"></p>
 
     <label>
-        Allocated amount
+        <span data-i18n="payments.allocatedAmount">Allocated amount</span>
         <input
                 id="ar-allocation-amount"
                 type="text"
@@ -19,7 +19,7 @@
                 required>
     </label>
 
-    <button id="allocate-ar-payment" type="submit">
+    <button data-i18n="allocations.allocatePayment" id="allocate-ar-payment" type="submit">
         Allocate Payment
     </button>
 </form>

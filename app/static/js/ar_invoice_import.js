@@ -1,9 +1,23 @@
+import {t} from "./i18n/i18n.js";
 // AR archive and persisted invoice data; independent of AP entry selection.
 import {initializeTableSort, reorderTableRows} from "./table_sort.js";
 import {initializeArPayments} from "./ar_payments.js";
 import {initializeArAllocations} from "./ar_allocations.js";
 import {initializeArRecognition} from "./ar_recognition.js";
 export function initializeArPanel() {
+    // Retain presentation renderers only; language changes must not refill forms
+    // or run selection/allocation logic. All translations still come from t().
+    const localizedText = new Map();
+    function setText(element, render) {
+        localizedText.set(element, render);
+        element.textContent = render();
+    }
+    document.addEventListener('accounting:language-changed', () => {
+        for (const [element, render] of localizedText) {
+            if (element.isConnected) element.textContent = render();
+            else localizedText.delete(element);
+        }
+    });
     if (!document.getElementById("ar-invoice-import-panel")) return;
     const directory = document.getElementById("ar-invoice-directory-name");
     const refreshButton = document.getElementById("refresh-ar-invoice-files");
@@ -46,6 +60,14 @@ export function initializeArPanel() {
         updateSelection();
     });
 
+    // Sorting creates functional buttons inside headers. Move each marker to
+    // its button so applyTranslations never replaces the sort control.
+    for (const header of dbBody.closest("table").querySelectorAll("th[data-i18n]")) {
+        const button = header.querySelector("button");
+        button.dataset.i18n = header.dataset.i18n;
+        header.removeAttribute("data-i18n");
+    }
+
     function updateSelection() {
         const index = invoices.findIndex(invoice => invoice.id === selectedInvoice?.id);
         for (const row of dbBody.querySelectorAll("[data-invoice-id]")) {
@@ -74,7 +96,7 @@ export function initializeArPanel() {
         for (const key of [...editableFields, ...derivedFields]) {
             document.getElementById(`ar-invoice-${key}`).value = selectedInvoice?.[key] ?? "";
         }
-        editorStatus.textContent = invoice ? `Loaded invoice: ${invoice.invoice_number}` : "Select an outgoing invoice.";
+        setText(editorStatus, () => invoice ? t("ar.loadedInvoice").replace("{number}", () => invoice.invoice_number) : t("ar.selectInvoice"));
         void refreshRecognition(selectedInvoice);
         updateSelection();
     }
@@ -89,7 +111,7 @@ export function initializeArPanel() {
     function fileState(message) {
         const item = document.createElement("li");
         item.className = "muted";
-        item.textContent = message;
+        setText(item, message);
         fileList.replaceChildren(item);
     }
 
@@ -98,7 +120,7 @@ export function initializeArPanel() {
         const cell = document.createElement("td");
         cell.colSpan = 11;
         cell.className = "muted";
-        cell.textContent = message;
+        setText(cell, message);
         row.appendChild(cell);
         dbBody.replaceChildren(row);
     }
@@ -120,16 +142,16 @@ export function initializeArPanel() {
     }
 
     async function loadArSourceFiles() {
-        fileCount.textContent = "Loading…";
-        fileState("Loading PDFs…");
+        setText(fileCount, () => t("ar.loading"));
+        fileState(() => t("ar.loadingPdfs"));
         try {
             const payload = await request("/source-files");
             if (!Array.isArray(payload.files) || !payload.files.every(name => typeof name === "string")) {
-                throw new Error("Invalid PDF list response");
+                throw new Error(t("ar.invalidPdfList"));
             }
             directory.textContent = payload.directory;
-            fileCount.textContent = `${payload.files.length} PDF${payload.files.length === 1 ? "" : "s"}`;
-            if (!payload.files.length) return fileState("No PDFs found.");
+            setText(fileCount, () => `${payload.files.length} ${t(payload.files.length === 1 ? "ar.pdf" : "ar.pdfs")}`);
+            if (!payload.files.length) return fileState(() => t("ar.noPdfs"));
             fileList.replaceChildren(...payload.files.map(filename => {
                 const item = document.createElement("li");
                 const button = document.createElement("button");
@@ -141,30 +163,30 @@ export function initializeArPanel() {
                     if (busy) return;
                     const matches = invoices.filter(invoice => invoice.pdf_filename === filename);
                     if (matches.length === 1) selectInvoice(matches[0]);
-                    else editorStatus.textContent = matches.length ? "Multiple invoices reference this PDF; select a table row."
-                        : "No persisted invoice matches this PDF. The current selection is unchanged.";
+                    else setText(editorStatus, () => matches.length ? t("ar.multipleMatches")
+                        : t("ar.noMatch"));
                 });
                 item.appendChild(button);
                 return item;
             }));
             updateSelection();
         } catch {
-            fileCount.textContent = "Unavailable";
-            fileState("Could not load source PDFs.");
+            setText(fileCount, () => t("ar.unavailable"));
+            fileState(() => t("ar.pdfLoadFailed"));
         }
     }
 
     async function loadOutgoingInvoices(preserveDraft = false) {
-        dbCount.textContent = "Loading…";
-        dbState("Loading outgoing invoices…");
+        setText(dbCount, () => t("ar.loading"));
+        dbState(() => t("ar.loadingInvoices"));
         try {
             const response = await request("");
-            if (!Array.isArray(response)) throw new Error("Invalid outgoing-invoice list response");
+            if (!Array.isArray(response)) throw new Error(t("ar.invalidInvoiceList"));
             invoices = sortInvoices(response);
-            dbCount.textContent = `${invoices.length} record${invoices.length === 1 ? "" : "s"}`;
+            setText(dbCount, () => `${invoices.length} ${t(invoices.length === 1 ? "ar.record" : "ar.records")}`);
             if (!invoices.length) {
                 selectInvoice(null);
-                dbState("No outgoing invoices stored yet.");
+                dbState(() => t("ar.noInvoices"));
                 return true;
             }
             dbBody.replaceChildren(...invoices.map(invoice => {
@@ -182,7 +204,9 @@ export function initializeArPanel() {
                     "amount_original", "paid_amount", "outstanding_amount", "payment_status", "pdf_filename",
                     "currency_common", "amount_common"]) {
                     const cell = document.createElement("td");
-                    cell.textContent = invoice[key] ?? (key === "amount_common" ? "pending" : "—");
+                    if (key === "amount_common" && invoice[key] == null) {
+                        setText(cell, () => t("ar.pending"));
+                    } else cell.textContent = invoice[key] ?? "—";
                     row.appendChild(cell);
                 }
                 return row;
@@ -196,8 +220,8 @@ export function initializeArPanel() {
             } else selectInvoice(updated);
             return true;
         } catch {
-            dbCount.textContent = "Unavailable";
-            dbState("Could not load outgoing invoices.");
+            setText(dbCount, () => t("ar.unavailable"));
+            dbState(() => t("ar.invoiceLoadFailed"));
             return false;
         }
     }
@@ -213,19 +237,19 @@ export function initializeArPanel() {
         }
         if (!Object.keys(payload).length) {
             selectInvoice(selectedInvoice);
-            editorStatus.textContent = "No changes to save.";
+            setText(editorStatus, () => t("ar.noChanges"));
             return;
         }
         setBusy(true);
-        editorStatus.textContent = "Saving…";
+        setText(editorStatus, () => t("ar.saving"));
         try {
             const updated = await request(`/${encodeURIComponent(selectedInvoice.id)}`, "PATCH", payload);
             selectInvoice(updated);
             const refreshed = await loadOutgoingInvoices();
-            editorStatus.textContent = refreshed ? `Saved invoice: ${updated.invoice_number}`
-                : "Invoice saved, but the list could not be refreshed. Click Refresh to retry.";
+            setText(editorStatus, () => refreshed ? t("ar.savedInvoice").replace("{number}", () => updated.invoice_number)
+                : t("ar.savedRefreshFailed"));
         } catch (error) {
-            editorStatus.textContent = `Could not save invoice: ${error.message}`;
+            setText(editorStatus, () => t("ar.saveFailed").replace("{error}", () => error.translationKey ? t(error.translationKey) : error.message));
         } finally {
             setBusy(false);
         }
@@ -234,7 +258,7 @@ export function initializeArPanel() {
     unlock.addEventListener("click", () => { editing = true; updateSelection(); });
     cancel.addEventListener("click", () => {
         selectInvoice(selectedInvoice);
-        editorStatus.textContent = "Edit cancelled.";
+        setText(editorStatus, () => t("ar.editCancelled"));
     });
     save.addEventListener("click", saveArInvoice);
     form.addEventListener("submit", event => { event.preventDefault(); void saveArInvoice(); });
@@ -259,22 +283,22 @@ export function initializeArPanel() {
     async function processArInvoiceDirectory() {
         if (busy) return;
         setBusy(true);
-        status.textContent = "Processing…";
-        processButton.textContent = "Processing…";
+        setText(status, () => t("ar.processingStatus"));
+        setText(processButton, () => t("ar.processingStatus"));
         try {
             const report = await request("/process-directory", "POST");
-            if (!Array.isArray(report.files)) throw new Error("Invalid processing response");
-            const labels = {imported: "imported", already_imported: "already imported", failed: "failed"};
-            status.textContent = report.files.length ? report.files.map(file => {
-                const error = file.status === "failed" ? `: ${errorText(file.error ?? file.error_code ?? "Unknown error")}` : "";
+            if (!Array.isArray(report.files)) throw Object.assign(new Error(t("ar.invalidProcessing")), {translationKey: "ar.invalidProcessing"});
+            setText(status, () => report.files.length ? report.files.map(file => {
+                const labels = {imported: t("ar.imported"), already_imported: t("ar.alreadyImported"), failed: t("ar.failed")};
+                const error = file.status === "failed" ? `: ${errorText(file.error ?? file.error_code ?? t("ar.unknownError"))}` : "";
                 return `${file.filename} — ${labels[file.status] ?? file.status}${error}`;
-            }).join("\n") : "No PDFs found.";
+            }).join("\n") : t("ar.noPdfs"));
         } catch (error) {
-            status.textContent = `Could not process AR invoice directory: ${error.message}`;
+            setText(status, () => t("ar.directoryFailed").replace("{error}", () => error.translationKey ? t(error.translationKey) : error.message));
         } finally {
             // Refresh even after a request failure: some per-file commits may have completed.
             await reloadDatasets();
-            processButton.textContent = "Update DB from Directory";
+            setText(processButton, () => t("ar.updateFromDirectory"));
             setBusy(false);
         }
     }
@@ -283,37 +307,41 @@ export function initializeArPanel() {
     processEntry.addEventListener("click", async () => {
         if (busy || editing || !selectedInvoice) return;
         setBusy(true);
-        editorStatus.textContent = "Processing…";
+        setText(editorStatus, () => t("ar.processingStatus"));
         try {
             const result = await request(`/${encodeURIComponent(selectedInvoice.id)}/process`, "POST");
             if (result.status === "processed") {
                 selectInvoice(result.entry);
                 const refreshed = await loadOutgoingInvoices();
-                editorStatus.textContent = `Processed invoice: ${result.invoice_number}. ${result.message}`
-                    + (refreshed ? "" : " List refresh failed; click Refresh to retry.");
-            } else editorStatus.textContent = `Processing failed: ${result.message}`;
+                setText(editorStatus, () => t("ar.processedInvoice").replace(/\{(number|message)\}/g, (_, key) =>
+                    key === "number" ? result.invoice_number : result.message)
+                    + (refreshed ? "" : t("ar.listRefreshFailed")));
+            } else setText(editorStatus, () => t("ar.processingFailed").replace("{error}", () => result.message));
         } catch (error) {
-            editorStatus.textContent = `Processing failed: ${error.message}`;
+            setText(editorStatus, () => t("ar.processingFailed").replace("{error}", () => error.translationKey ? t(error.translationKey) : error.message));
         } finally { setBusy(false); }
     });
     normalize.addEventListener("click", async () => {
         if (busy || editing) return;
         setBusy(true);
-        normalize.textContent = "Processing…";
-        conversionStatus.textContent = "Processing…";
+        setText(normalize, () => t("ar.processingStatus"));
+        setText(conversionStatus, () => t("ar.processingStatus"));
         try {
             const report = await request("/process-entries", "POST");
-            conversionStatus.textContent = `${report.processed} processed; ${report.failed} failed.\n`
-                + report.invoices.map(invoice => `${invoice.invoice_number} — ${invoice.status}: ${invoice.message}`).join("\n");
+            setText(conversionStatus, () => `${report.processed} ${t("ar.processed")}; ${report.failed} ${t("ar.failed")}.\n`
+                + report.invoices.map(invoice => `${invoice.invoice_number} — ${invoice.status}: ${invoice.message}`).join("\n"));
         } catch (error) {
-            conversionStatus.textContent = `Could not process invoices: ${error.message}`;
+            setText(conversionStatus, () => t("ar.processFailed").replace("{error}", () => error.translationKey ? t(error.translationKey) : error.message));
         } finally {
             await loadOutgoingInvoices();
-            normalize.textContent = "Process Entries";
+            setText(normalize, () => t("ar.processEntries"));
             setBusy(false);
         }
     });
     processButton.addEventListener("click", processArInvoiceDirectory);
+    setText(editorStatus, () => t("ar.selectInvoice"));
+    setText(processButton, () => t("ar.updateFromDirectory"));
+    setText(normalize, () => t("ar.processEntries"));
     void refreshArPanel();
     async function refreshInvoiceFacts() {
         if (busy) return false;

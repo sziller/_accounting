@@ -1,12 +1,12 @@
 <section class="card" id="ar-payments-panel">
-    <h2>Incoming Payments</h2>
+    <h2 data-i18n="payments.title">Incoming Payments</h2>
 
     <div class="json-actions">
-        <button id="new-ar-payment" type="button">
+        <button data-i18n="payments.newPayment" id="new-ar-payment" type="button">
             New Payment
         </button>
 
-        <button id="refresh-ar-payments" type="button">
+        <button data-i18n="payments.refresh" id="refresh-ar-payments" type="button">
             Refresh Payments
         </button>
     </div>
@@ -15,20 +15,20 @@
         <table class="ar-db-table">
             <thead>
                 <tr>
-                    <th>Payment date</th>
-                    <th>Amount</th>
-                    <th>Currency</th>
-                    <th>Payer</th>
-                    <th>Bank/reference</th>
-                    <th>Payment method</th>
-                    <th>Allocated amount</th>
-                    <th>Unallocated amount</th>
+                    <th data-i18n="payments.paymentDate">Payment date</th>
+                    <th data-i18n="common.amount">Amount</th>
+                    <th data-i18n="common.currency">Currency</th>
+                    <th data-i18n="payments.payer">Payer</th>
+                    <th data-i18n="payments.bankReference">Bank/reference</th>
+                    <th data-i18n="payments.paymentMethod">Payment method</th>
+                    <th data-i18n="payments.allocatedAmount">Allocated amount</th>
+                    <th data-i18n="payments.unallocatedAmount">Unallocated amount</th>
                 </tr>
             </thead>
 
             <tbody id="ar-payment-body">
                 <tr>
-                    <td colspan="8">
+                    <td data-i18n="payments.loading" colspan="8">
                         Loading incoming payments…
                     </td>
                 </tr>
@@ -38,7 +38,7 @@
 
     <form class="form-grid" id="ar-payment-form">
         <label>
-            Payment date
+            <span data-i18n="payments.paymentDate">Payment date</span>
             <input
                     disabled
                     name="payment_date"
@@ -47,7 +47,7 @@
         </label>
 
         <label>
-            Amount
+            <span data-i18n="common.amount">Amount</span>
             <input
                     disabled
                     name="amount"
@@ -57,7 +57,7 @@
         </label>
 
         <label>
-            Currency
+            <span data-i18n="common.currency">Currency</span>
             <input
                     disabled
                     name="currency"
@@ -67,7 +67,7 @@
         </label>
 
         <label>
-            Payer
+            <span data-i18n="payments.payer">Payer</span>
             <input
                     disabled
                     name="payer_name"
@@ -75,7 +75,7 @@
         </label>
 
         <label>
-            Bank/reference
+            <span data-i18n="payments.bankReference">Bank/reference</span>
             <input
                     disabled
                     name="bank_reference"
@@ -83,7 +83,7 @@
         </label>
 
         <label>
-            Payment method
+            <span data-i18n="payments.paymentMethod">Payment method</span>
             <input
                     disabled
                     name="payment_method"
@@ -91,14 +91,14 @@
         </label>
 
         <label>
-            Remarks
+            <span data-i18n="common.remarks">Remarks</span>
             <textarea
                     disabled
                     name="remarks"></textarea>
         </label>
 
         <label>
-            Allocated amount
+            <span data-i18n="payments.allocatedAmount">Allocated amount</span>
             <input
                     readonly
                     name="allocated_amount"
@@ -106,7 +106,7 @@
         </label>
 
         <label>
-            Unallocated amount
+            <span data-i18n="payments.unallocatedAmount">Unallocated amount</span>
             <input
                     readonly
                     name="unallocated_amount"
@@ -121,7 +121,7 @@
                 Save Changes
             </button>
 
-            <button
+            <button data-i18n="common.cancel"
                     disabled
                     id="cancel-ar-payment"
                     type="button">

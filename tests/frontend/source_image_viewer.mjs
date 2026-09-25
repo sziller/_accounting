@@ -6,8 +6,17 @@ import {readFile} from "node:fs/promises";
 import {createServer} from "node:http";
 
 const root = new URL("../../", import.meta.url);
+async function renderTemplate(file) {
+    let body = await readFile(new URL(file, root), 'utf8');
+    for (const match of body.matchAll(/{% include "([^"]+)" %}/g)) {
+        body = body.replace(match[0], await renderTemplate('app/templates/' + match[1]));
+    }
+    return body;
+}
 const jpeg = await readFile(new URL("app/static/Accounting-LogoBitbucket.jpg", root));
 let secondJpeg;
+let png;
+let pdfDelay = 0;
 const entries = ["IMG_4821.JPG", "My Receipt #02.jpeg", null, "missing.jpg"].map(
     (source_filename, index) => ({
         id: String(index + 1), source_filename, counterparty_name: `Vendor ${index + 1}`,
@@ -184,9 +193,13 @@ const server = createServer(async (req, res) => {
                 {filename: "Broken.pdf", status: "failed", error: "gross amount not found"},
             ]});
         }
+        if (path.endsWith('/source-pdf')) {
+            await new Promise(resolve => setTimeout(resolve, pdfDelay));
+            res.setHeader('Content-Type', 'application/pdf');return res.end('%PDF-1.4\nsource fixture');
+        }
         await new Promise(resolve => setTimeout(resolve, arDelay));
         if (arMode === "error") {res.statusCode = 503; return json({detail: "Unavailable"});}
-        if (path.endsWith("/source-files")) return json({directory: "AR_invoice_pdf", files: arMode === "empty" ? [] : ["Source One.PDF", "New.pdf"]});
+        if (path.endsWith("/source-files")) return json({directory: "AR_source_files", files: arMode === "empty" ? [] : ["Source One.PDF", "New.pdf"]});
         return json(arMode === "empty" ? [] : arInvoices);
     }
     if (path === "/acct/v0/metadata") return json({entry_types: ["expense"], tax_scopes: ["domestic"], payment_methods: ["bank_transfer"], currencies: ["EUR"], categories: [{code:"buro",label:"Office"}]});
@@ -207,23 +220,25 @@ const server = createServer(async (req, res) => {
     if (path.endsWith("entry-create-contract")) return json({fixture_contract:true, entries:[]});
     if (path === "/acct/v0/entries") return json(entries);
     if (path.startsWith("/acct/v0/entries/")) return json(entries.find(entry => path.endsWith(`/${entry.id}`)));
-    if (path.startsWith("/acct/v0/source-images/")) {
+    if (path.startsWith("/acct/v0/source-documents/")) {
         requests.push(req.url);
         if (path.endsWith("missing.jpg")) {res.writeHead(404); return res.end();}
+        if (path.endsWith('.pdf')) {res.setHeader('Content-Type', 'application/pdf');return res.end('%PDF-1.4\nsource fixture');}
+        if (path.endsWith('.png')) {res.setHeader('Content-Type', 'image/png');return res.end(png);}
         res.setHeader("Content-Type", "image/jpeg");
         return res.end(path.endsWith(".jpeg") ? secondJpeg : jpeg);
     }
     const file = path === "/" ? "app/templates/index.html" : `app${path}`;
     if (path !== "/" && !path.startsWith("/static/")) {res.writeHead(404); return res.end();}
     try {
-        const body = await readFile(new URL(file, root));
+        const body = path === "/" ? await renderTemplate(file) : await readFile(new URL(file, root));
         res.setHeader("Content-Type", path.endsWith(".js") ? "text/javascript" : path.endsWith(".css") ? "text/css" : "text/html");
         res.end(body);
     } catch {res.writeHead(404); res.end();}
 });
 await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 const origin = `http://127.0.0.1:${server.address().port}`;
-const target = await (await fetch("http://127.0.0.1:9223/json/new?about:blank", {method: "PUT"})).json();
+const target = await (await fetch(`http://127.0.0.1:${process.env.CDP_PORT ?? 9223}/json/new?about:blank`, {method: "PUT"})).json();
 const socket = new WebSocket(target.webSocketDebuggerUrl);
 await new Promise(resolve => socket.addEventListener("open", resolve, {once: true}));
 let sequence = 0;
@@ -257,7 +272,7 @@ async function waitFor(expression) {
         if (await evaluate(expression)) return;
         await new Promise(resolve => setTimeout(resolve, 50));
     }
-    throw new Error(`Timed out: ${expression}; message=${await evaluate('document.getElementById("message")?.textContent')}; errors=${JSON.stringify(runtimeErrors)}`);
+    throw new Error(`Timed out: ${expression}; message=${await evaluate('document.getElementById("entry-processing-status")?.textContent')}; errors=${JSON.stringify(runtimeErrors)}`);
 }
 const image = 'document.getElementById("source-image")';
 const click = selector => evaluate(`document.querySelector(${JSON.stringify(selector)}).click()`);
@@ -266,7 +281,25 @@ const transform = () => evaluate(`(() => {
     return {scale: m.a, x: m.e, y: m.f};
 })()`);
 const assertFit = async () => assert.deepEqual(await transform(), {scale: 1, x: 0, y: 0});
+const geometry = selector => evaluate(`(() => {
+    const element=document.querySelector(${JSON.stringify(selector)}), rect=element.getBoundingClientRect();
+    return {width:rect.width,height:rect.height};
+})()`);
+async function checkHeader(card, ids) {
+    const result=await evaluate(`(() => {
+        const card=document.querySelector(${JSON.stringify(card)}), heading=card.querySelector('.records-heading');
+        const copy=heading.querySelector('.records-heading-copy'), actions=heading.querySelector('.records-heading-actions');
+        const c=copy.getBoundingClientRect(), a=actions.getBoundingClientRect(), h=heading.getBoundingClientRect();
+        return {ids:Array.from(actions.children,b=>b.id), text:copy.textContent, border:getComputedStyle(heading).borderBottomWidth,
+            right:a.right<=h.right+1 && a.left>=c.right, top:Math.abs(a.top-c.top)<1};
+    })()`);
+    assert.deepEqual(result.ids,ids);
+    assert.match(result.text,/Browse and select accounts/);
+    assert.equal(result.border,'0px');
+    assert(result.right && result.top, JSON.stringify(result));
+}
 try {
+    png = Buffer.from(await evaluate(`(() => {const c=document.createElement('canvas');c.width=1600;c.height=2400;return c.toDataURL('image/png').split(',')[1];})()`),'base64');
     secondJpeg = Buffer.from(await evaluate(`(() => {
         const canvas = document.createElement("canvas");
         canvas.width = 40; canvas.height = 80;
@@ -281,17 +314,16 @@ try {
     await waitFor('document.querySelectorAll(".entry-row").length === 4');
     assert.equal(await evaluate('location.hash'), "#ap");
     assert.deepEqual(await evaluate('Array.from(document.querySelectorAll(".view-nav-button"), e=>e.textContent.trim())'),
-        ["Accounts Payable", "Accounts Receivable", "New Entries", "Gewinnermittlung"]);
+        ["Accounts Payable", "Accounts Receivable", "New Entries", "Yearly Summary"]);
     assert.equal(await evaluate('document.querySelector("#input-view #ar-invoice-import-panel")'), null);
     await waitFor('document.getElementById("ar-invoice-db-count").textContent === "1 record"');
-    assert.equal(await evaluate('document.querySelectorAll("#ar-invoice-file-list li").length'), 2);
     assert.deepEqual(await evaluate('Array.from(document.querySelectorAll("#ar-invoice-db-body td"), cell => cell.textContent)'),
         [arInvoice.invoice_number, arInvoice.invoice_date, arInvoice.customer_name, arInvoice.currency,
-            arInvoice.gross_amount, arInvoice.paid_amount, arInvoice.outstanding_amount, arInvoice.payment_status, arInvoice.pdf_filename, "EUR", "pending"]);
+            arInvoice.gross_amount, arInvoice.paid_amount, arInvoice.outstanding_amount, arInvoice.payment_status, arInvoice.pdf_filename, "EUR", "pending", "DELETE / ENTFERNEN"]);
     assert.equal(arProcessCalls, 0);
     await click('.entry-row[data-entry-id="1"]');
     await waitFor(`${image}.naturalWidth > 0 && !${image}.hidden`);
-    assert.equal(await evaluate(`${image}.src`), `${origin}/acct/v0/source-images/IMG_4821.JPG`);
+    assert.equal(await evaluate(`${image}.src`), `${origin}/acct/v0/source-documents/IMG_4821.JPG`);
     const dimensions = await evaluate(`(() => {
         const img = ${image}; const bounds = img.getBoundingClientRect();
         const frame = img.parentElement.getBoundingClientRect(); const css = getComputedStyle(img);
@@ -306,7 +338,35 @@ try {
     assert.equal(dimensions.opacity, "1");
     assert.equal(dimensions.fit, "contain");
     console.log("Rendered image:", dimensions);
-    const response = responses.find(item => item.url.endsWith("/source-images/IMG_4821.JPG"));
+    const stageSize=await geometry('.source-document-stage');
+    assert.equal(stageSize.height,await evaluate(`parseFloat(getComputedStyle(document.documentElement).fontSize)*16`));
+    const cardSize=await geometry('.source-image-card');
+    await checkHeader('.entries-card',['previous-entry','next-entry','refresh-entries']);
+    const originalFilename=entries[1].source_filename;
+    for (const filename of ['Receipt.pdf','Receipt.png','Receipt.pdf',originalFilename]) {
+        entries[1].source_filename=filename;
+        await click('#refresh-entries');await waitFor(`!document.getElementById('refresh-entries').disabled`);
+        await click('.entry-row[data-entry-id="1"]');await waitFor(`document.getElementById('detail_id').value==='1' && ${image}.naturalWidth>0 && !${image}.hidden`);
+        await click('#next-source-image');
+        await waitFor(`document.getElementById('detail_id').value==='2'`);
+        if(filename.endsWith('.pdf')) {
+            await waitFor(`!document.getElementById('source-document-pdf').hidden`);
+            assert.deepEqual(await geometry('#source-document-pdf'),stageSize);
+            assert.equal(await evaluate(`getComputedStyle(document.getElementById('source-image-frame')).display`),'none');
+            assert.equal(await evaluate(`getComputedStyle(document.getElementById('source-image-tools')).visibility`),'hidden');
+        } else {
+            await waitFor(`${image}.naturalWidth>0 && !${image}.hidden`);
+            await assertFit();
+            assert.equal(await evaluate(`getComputedStyle(${image}).objectFit`),'contain');
+            assert.equal(await evaluate(`getComputedStyle(document.getElementById('source-document-pdf')).display`),'none');
+        }
+        assert.deepEqual(await geometry('.source-document-stage'),stageSize);
+        assert.deepEqual(await geometry('.source-image-card'),cardSize);
+        await click('#previous-source-image');await waitFor(`document.getElementById('detail_id').value==='1' && ${image}.naturalWidth>0 && !${image}.hidden`);
+        assert.deepEqual(await geometry('.source-image-card'),cardSize);
+    }
+    console.log('PASS: AP JPG/PDF/PNG/JPEG fixed stage and card dimensions; exclusive renderers; reserved toolbar; shared list header.');
+    const response = responses.find(item => item.url.endsWith("/source-documents/IMG_4821.JPG"));
     assert.equal(response.status, 200);
     assert.equal(response.mimeType, "image/jpeg");
     const screenshot = await command("Page.captureScreenshot", {format: "png"});
@@ -363,14 +423,17 @@ try {
     await command("Input.dispatchKeyEvent", {type: "keyDown", key: "+", text: "+"});
     await command("Input.dispatchKeyEvent", {type: "keyUp", key: "+"});
     await assertFit();
+    await click('#cancel-entry-edit');
+    await click('.entry-row[data-entry-id="1"]');
+    await waitFor(`!document.getElementById('next-source-image').disabled && !${image}.hidden`);
     await click("#source-image-zoom-in");
 
     await click("#next-source-image");
-    await waitFor(`${image}.getAttribute("src") === "/acct/v0/source-images/My%20Receipt%20%2302.jpeg" && !${image}.hidden`);
+    await waitFor(`${image}.getAttribute("src") === "/acct/v0/source-documents/My%20Receipt%20%2302.jpeg" && !${image}.hidden`);
     assert.equal(await evaluate(`${image}.naturalWidth`), 40);
     assert.equal(await evaluate(`${image}.naturalHeight`), 80);
     await assertFit();
-    assert.equal(await evaluate('document.getElementById("source-image-filename").textContent'), entries[1].source_filename);
+    assert.equal(await evaluate('document.getElementById("source-image-filename").textContent'), 'AP_source_files/'+entries[1].source_filename);
     assert.equal(await evaluate('document.getElementById("detail_id").value'), "2");
     assert.equal(await evaluate('document.querySelector(".entry-row.is-selected").dataset.entryId'), "2");
     await click("#next-source-image");
@@ -401,16 +464,24 @@ try {
     assert.equal(await evaluate('document.getElementById("process-view").hidden && !document.getElementById("input-view").hidden'), true);
     await click("#show-process-view");
     assert.equal(await evaluate(`!document.getElementById("process-view").hidden && !${image}.hidden`), true);
-    assert.ok(requests.includes("/acct/v0/source-images/My%20Receipt%20%2302.jpeg"));
+    assert.ok(requests.includes("/acct/v0/source-documents/My%20Receipt%20%2302.jpeg"));
     await click("#show-ar-view");
     assert.equal(await evaluate('location.hash'), "#ar");
     assert.equal(await evaluate(`(() => {
-        const files = document.getElementById("ar-invoice-import-panel").getBoundingClientRect();
+        const files = document.querySelector(".ar-document-column").getBoundingClientRect();
         const rows = document.querySelector(".ar-invoices-card").getBoundingClientRect();
         const editor = document.querySelector(".ar-editor-column").getBoundingClientRect();
-        return editor.right <= files.left && editor.right <= rows.left && files.bottom <= rows.top;
-    })()`), true, "AR editor sits left of PDFs and selectable invoices");
+        const pdf=document.querySelector('.ar-source-card').getBoundingClientRect();
+        return editor.right <= files.left && pdf.bottom <= rows.top;
+    })()`), true, "AR editor sits beside the PDF/list column, with PDF above the list");
+    await checkHeader('.ar-invoices-card',['previous-ar-invoice','next-ar-invoice','refresh-ar-invoices']);
+    const arViewerSize=await geometry('.ar-pdf-viewer');
+    const arCardSize=await geometry('.ar-source-card');
+    assert.equal(arViewerSize.height,stageSize.height);
     await click('[data-invoice-id="ar-1"]');
+    await waitFor(`!document.getElementById('ar-source-pdf').hidden`);
+    assert.deepEqual(await geometry('.ar-source-card'),arCardSize);
+    assert.equal(await evaluate(`(() => {const f=document.getElementById('ar-source-pdf'),p=f.parentElement;return f.offsetWidth===p.clientWidth && f.offsetHeight===p.clientHeight;})()`),true);
     await waitFor('document.getElementById("ar-recognition-body").textContent.includes("No receipt recognized yet")');
     assert.equal(await evaluate('document.getElementById("ar-invoice-invoice_number").value'), "2701");
     assert.equal(await evaluate('document.querySelector(".ar-db-table .is-selected").dataset.invoiceId'), "ar-1");
@@ -458,49 +529,48 @@ try {
     assert.equal(await evaluate('document.getElementById("ar-invoice-amount_original").value'), "0.50");
     await click("#cancel-ar-invoice-edit");
     rejectArPatch = false;
-    await click('[data-pdf-filename="Source One.PDF"]');
+    await click('[data-invoice-id="ar-1"]');
     assert.equal(await evaluate('document.querySelector(".ar-db-table .is-selected").dataset.invoiceId'), "ar-1");
-    await click('[data-pdf-filename="New.pdf"]');
-    assert.equal(await evaluate('document.getElementById("ar-invoice-editor-status").textContent.startsWith("No persisted")'), true);
     arDelay = 200;
     const beforeRefresh = arRequests.length;
-    await click("#refresh-ar-invoice-files");
-    assert.equal(await evaluate('document.getElementById("ar-invoice-file-list").textContent'), "Loading PDFs…");
-    assert.equal(await evaluate('document.getElementById("ar-invoice-db-body").textContent'), "Loading outgoing invoices…");
-    await waitFor('!document.getElementById("refresh-ar-invoice-files").disabled');
-    assert.equal(arRequests.length, beforeRefresh + 2);
-    assert.equal(arProcessCalls, 0);
-    await click("#process-ar-invoice-directory");
-    assert.equal(await evaluate('document.getElementById("process-ar-invoice-directory").disabled'), true);
-    assert.equal(await evaluate('document.getElementById("ar-invoice-import-status").textContent'), "Processing…");
-    await waitFor('!document.getElementById("process-ar-invoice-directory").disabled');
-    assert.equal(arProcessCalls, 1);
+    // Simulate a DB invoice created through the new contract workflow.
+    arInvoices.push({...arInvoice, id:"ar-2", invoice_number:"2702", pdf_filename:"New.pdf"});
+    await click("#refresh-ar-invoices");
+    await waitFor('!document.getElementById("refresh-ar-invoices").disabled');
     assert.equal(await evaluate('document.getElementById("ar-invoice-db-count").textContent'), "2 records");
-    assert.equal(await evaluate('document.getElementById("ar-invoice-import-status").textContent'),
-        "Source One.PDF — already imported\nNew.pdf — imported\nBroken.pdf — failed: gross amount not found");
-    assert.deepEqual(arRequests.slice(-2).map(item => item.path).sort(),
-        ["/acct/v0/outgoing-invoices", "/acct/v0/outgoing-invoices/source-files"]);
+    assert.equal(arProcessCalls, 0);
+    assert(arRequests.slice(beforeRefresh).some(item=>item.path==='/acct/v0/outgoing-invoices'));
+    assert(!arRequests.some(item=>/source-files|process-directory/.test(item.path)));
     await click("#next-ar-invoice");
     assert.equal(await evaluate('document.getElementById("ar-invoice-invoice_number").value'), "2702");
     await click("#previous-ar-invoice");
     assert.equal(await evaluate('document.getElementById("ar-invoice-invoice_number").value'), "2701");
+    pdfDelay=200;
+    for(const button of ['#next-ar-invoice','#previous-ar-invoice','#next-ar-invoice','#previous-ar-invoice']) {
+        const oldSrc=await evaluate(`document.getElementById('ar-source-pdf').src`);
+        await click(button);
+        assert.deepEqual(await geometry('.ar-pdf-viewer'),arViewerSize);
+        assert.deepEqual(await geometry('.ar-source-card'),arCardSize);
+        await waitFor(`document.getElementById('ar-source-pdf').src!==${JSON.stringify(oldSrc)} && !document.getElementById('ar-source-pdf-link').hidden`);
+        assert.deepEqual(await geometry('.ar-pdf-viewer'),arViewerSize);
+        assert.deepEqual(await geometry('.ar-source-card'),arCardSize);
+    }
+    pdfDelay=0;
+    console.log('PASS: AR fixed viewer/card through empty, loading, repeated invoice selection and PDF replacement; iframe fills viewer.');
     arMode = "empty";
-    await click("#refresh-ar-invoice-files");
-    await waitFor('!document.getElementById("refresh-ar-invoice-files").disabled');
-    assert.equal(await evaluate('document.getElementById("ar-invoice-file-list").textContent'), "No PDFs found.");
+    await click("#refresh-ar-invoices");
+    await waitFor('!document.getElementById("refresh-ar-invoices").disabled');
     assert.equal(await evaluate('document.getElementById("ar-invoice-db-body").textContent'), "No outgoing invoices stored yet.");
     assert.equal(await evaluate('document.getElementById("ar-invoice-invoice_number").value'), "");
     assert.equal(await evaluate('document.getElementById("unlock-ar-invoice-edit").disabled'), true);
+    assert.deepEqual(await geometry('.ar-source-card'),arCardSize);
     arMode = "error";
-    await click("#refresh-ar-invoice-files");
-    await waitFor('!document.getElementById("refresh-ar-invoice-files").disabled');
-    assert.equal(await evaluate('document.getElementById("ar-invoice-file-list").textContent'), "Could not load source PDFs.");
+    await click("#refresh-ar-invoices");
+    await waitFor('!document.getElementById("refresh-ar-invoices").disabled');
     assert.equal(await evaluate('document.getElementById("ar-invoice-db-body").textContent'), "Could not load outgoing invoices.");
     arMode = "normal";
-    arProcessFailure = true;
-    await click("#process-ar-invoice-directory");
-    await waitFor('!document.getElementById("process-ar-invoice-directory").disabled');
-    assert.equal(await evaluate('document.getElementById("ar-invoice-import-status").textContent'), "Could not process AR invoice directory: Import unavailable");
+    await click("#refresh-ar-invoices");
+    await waitFor('!document.getElementById("refresh-ar-invoices").disabled');
     assert.equal(await evaluate('document.getElementById("ar-invoice-db-count").textContent'), "2 records");
     await click("#show-input-view");
     assert.equal(await evaluate('location.hash'), "#new");
@@ -526,24 +596,24 @@ try {
     await waitFor('document.getElementById("message").textContent.includes("copied")');
     assert.equal(JSON.parse(await evaluate('navigator.clipboard.readText()')).fixture_contract, true);
     await click("#show-process-view");
-    await evaluate('document.getElementById("message").textContent = ""');
+    await evaluate('document.getElementById("entry-processing-status").textContent = ""');
     await click('.entry-row[data-entry-id="1"]');
-    await waitFor('document.getElementById("message").textContent === "Loaded entry: 1"');
+    await waitFor('document.getElementById("entry-processing-status").textContent === "Loaded entry: 1"');
     await click("#unlock-entry-edit");
     await evaluate('document.getElementById("detail_counterparty_name").value="Edited AP vendor"');
     await click("#save-entry-edit");
-    await waitFor('document.getElementById("message").textContent.startsWith("Updated entry:")');
+    await waitFor('document.getElementById("entry-processing-status").textContent.startsWith("Updated entry:")');
     assert.equal(writes.at(-1).method, "PUT");
     assert.equal(writes.at(-1).payload.counterparty_name,"Edited AP vendor");
     assert.equal(await evaluate('document.getElementById("process-entry").textContent'), "Process Entry");
     assert.equal(await evaluate('document.getElementById("reprocess-pending-conversions").textContent'), "Process Entries");
     await click("#process-entry");
-    await waitFor('document.getElementById("message").textContent.includes("processed: Recalculated")');
+    await waitFor('document.getElementById("entry-processing-status").textContent.includes("processed: Recalculated")');
     assert.equal(writes.at(-1).path, "/acct/v0/entries/1/process");
     assert.equal(await evaluate('document.getElementById("detail_amount_common").value'), "10.00");
     assert.equal(await evaluate('document.getElementById("detail_vat_amount").value'), "1.60");
     await click("#reprocess-pending-conversions");
-    await waitFor('document.getElementById("message").textContent.includes("4 processed")');
+    await waitFor('document.getElementById("entry-processing-status").textContent.includes("4 processed")');
     assert.ok(writes.at(-1).path.endsWith("entries/process"));
     await evaluate('location.hash="#ar"');
     await waitFor('!document.getElementById("ar-view").hidden');
@@ -553,8 +623,8 @@ try {
         {...arInvoice, id:"sort-b", invoice_number:"10", invoice_date:"2026-01-01", gross_amount:"9007199254740993.02", amount_original:"9007199254740993.02"},
         {...arInvoice, id:"sort-c", invoice_number:"1", invoice_date:"2026-03-01", gross_amount:"9.00", amount_original:"9.00"},
     ];
-    await click("#refresh-ar-invoice-files");
-    await waitFor('document.querySelectorAll("#ar-invoice-db-body tr[data-invoice-id]").length === 3 && !document.getElementById("refresh-ar-invoice-files").disabled');
+    await click("#refresh-ar-invoices");
+    await waitFor('document.querySelectorAll("#ar-invoice-db-body tr[data-invoice-id]").length === 3 && !document.getElementById("refresh-ar-invoices").disabled');
     await click('[data-invoice-id="sort-a"]');
     await click("#unlock-ar-invoice-edit");
     await evaluate('document.getElementById("ar-invoice-remarks").value="Unsaved draft"');
@@ -570,8 +640,8 @@ try {
     assert.equal(await evaluate('document.querySelector(".ar-db-table th:nth-child(2)").getAttribute("aria-sort")'), "ascending");
     await click("#next-ar-invoice");
     assert.equal(await evaluate('document.getElementById("ar-invoice-invoice_number").value'), "1");
-    await click("#refresh-ar-invoice-files");
-    await waitFor('!document.getElementById("refresh-ar-invoice-files").disabled');
+    await click("#refresh-ar-invoices");
+    await waitFor('!document.getElementById("refresh-ar-invoices").disabled');
     assert.deepEqual(await arOrder(), ["sort-b","sort-a","sort-c"]);
     await click("#show-process-view");
     const apOrder = () => evaluate('Array.from(document.querySelectorAll(".entry-row"), row=>row.dataset.entryId)');
@@ -584,7 +654,7 @@ try {
     await click("#next-source-image");
     await waitFor('document.getElementById("detail_id").value === "1"');
     await click("#reprocess-pending-conversions");
-    await waitFor('document.getElementById("message").textContent.includes("4 processed")');
+    await waitFor('document.getElementById("entry-processing-status").textContent.includes("4 processed")');
     assert.deepEqual(await apOrder(), ["4","3","2","1"]);
     await click('.entries-table th:nth-child(1) button');
     assert.equal(await evaluate('document.querySelector(".entries-table th").getAttribute("aria-sort")'), "ascending");
@@ -629,8 +699,8 @@ try {
     refreshAllocationFixtures();
     await click('#refresh-ar-payments');
     await waitFor('!document.getElementById("refresh-ar-payments").disabled');
-    await click('#refresh-ar-invoice-files');
-    await waitFor('!document.getElementById("refresh-ar-invoice-files").disabled');
+    await click('#refresh-ar-invoices');
+    await waitFor('!document.getElementById("refresh-ar-invoices").disabled');
     await click('[data-invoice-id="allocation-invoice"]');
     assert.equal(await evaluate('document.querySelectorAll("#ar-allocation-payment option").length'),2);
     assert.equal(await evaluate('document.getElementById("ar-allocation-amount").value'),'60');
@@ -694,8 +764,8 @@ try {
         {...arInvoice, id:"normalize-eur", invoice_number:"EUR", currency_original:"EUR", currency:"EUR", amount_original:"12.50", gross_amount:"12.50"},
         {...arInvoice, id:"normalize-usd", invoice_number:"USD"},
     ];
-    await click("#refresh-ar-invoice-files");
-    await waitFor('!document.getElementById("refresh-ar-invoice-files").disabled');
+    await click("#refresh-ar-invoices");
+    await waitFor('!document.getElementById("refresh-ar-invoices").disabled');
     await click('[data-invoice-id="normalize-eur"]');
     assert.equal(await evaluate('document.getElementById("ar-invoice-amount_common").value'), "");
     assert.equal(await evaluate('document.getElementById("process-ar-entry").textContent'), "Process Entry");
@@ -770,7 +840,18 @@ try {
     console.log('PASS: summary navigation/year/refresh/backend headlines/exact decimals/currencies/completeness/warnings/nulls/empty/errors/AP and AR drafts/read-only requests.');
     await command("Emulation.setDeviceMetricsOverride", {width:600,height:900,deviceScaleFactor:1,mobile:false});
     assert.equal(await evaluate('getComputedStyle(document.querySelector(".ar-workspace")).gridTemplateColumns.split(" ").length'), 1);
-    assert.equal(await evaluate('getComputedStyle(document.querySelector(".ar-records-column")).position'), "static");
+    assert.equal(await evaluate('getComputedStyle(document.querySelector(".ar-document-column")).position'), "static");
+    for (const width of [600,390]) {
+        await command('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});
+        await checkHeader('.ar-invoices-card',['previous-ar-invoice','next-ar-invoice','refresh-ar-invoices']);
+        assert.equal((await geometry('.ar-pdf-viewer')).height,stageSize.height);
+        assert.equal(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'),true);
+        await click('#show-process-view');
+        await checkHeader('.entries-card',['previous-entry','next-entry','refresh-entries']);
+        assert.equal((await geometry('.source-document-stage')).height,stageSize.height);
+        assert.equal(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'),true);
+        await click('#show-ar-view');
+    }
     assert.deepEqual(runtimeErrors, []);
     blockFeatureModule = true;
     await command("Network.setCacheDisabled", {cacheDisabled: true});
@@ -782,7 +863,7 @@ try {
     }
     console.log("PASS: all three navigation buttons work when the AP feature module cannot load.");
     console.log("PASS: three-view/hash navigation; AR selection/edit/cancel/PATCH/validation/read-only fields/PDF matching/Previous/Next/removal; responsive layout; manual/batch/contract copy; AP save and conversion.");
-    console.log("PASS: AR initial datasets, original/common currency columns, Refresh without POST, body-free processing, busy state, per-file results, refreshed DB, empty/error states and recovery.");
+    console.log("PASS: AR database list, original/common currency columns, Refresh without POST or directory scans, refreshed DB, empty/error states and recovery.");
     console.log("PASS: JPEG rendering; bounded zoom/fit; mouse pan and bounds; fixed layout; Ctrl+wheel and normal scrolling; focused keyboard shortcuts; row/Previous/Next reset; empty/error states; form editing; Process/Input.");
 } finally {
     await command("Page.close");

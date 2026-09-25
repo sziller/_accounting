@@ -265,6 +265,7 @@ export function initializeNewEntries({
     metadata,
     onEntriesCreated = async () => {},
 } = {}) {
+    initializeOutgoingInvoiceInput();
     const form = document.getElementById("entry-form");
     const message = document.getElementById("message");
 
@@ -446,8 +447,8 @@ export function initializeNewEntries({
 
             try {
                 rawPayload = JSON.parse(jsonPasteArea.value);
-            } catch (error) {
-                showMessage(() => `${t("newEntries.validation.invalidJson")}\n${error.message}`);
+            } catch {
+                showMessage(() => t("newEntries.validation.invalidJson"));
                 return;
             }
 
@@ -493,4 +494,69 @@ export function initializeNewEntries({
     return {
         showMessage,
     };
+}
+
+// AR has its own payload, contract and status; AP drafts are never touched.
+function initializeOutgoingInvoiceInput() {
+    const input = document.getElementById('ar-json-input');
+    if (!input) return;
+    const contractArea = document.getElementById('ar-contract-json');
+    const status = document.getElementById('ar-json-status');
+    const submit = document.getElementById('submit-ar-json');
+    let renderStatus = () => '';
+    let contract;
+    const show = render => { renderStatus = render; status.textContent = render(); };
+    const fetchContract = async () => {
+        contract = await apiGet('/outgoing-invoice-create-contract');
+        contractArea.value = JSON.stringify(contract, null, 2);
+        return contract;
+    };
+    const bind = (id, action) => document.getElementById(id).addEventListener('click', async () => {
+        try { await action(); }
+        catch (error) { show(() => formatApiError(error)); }
+    });
+    bind('fetch-ar-contract', async () => {
+        await fetchContract();
+        show(() => t('newEntries.status.contractLoaded'));
+    });
+    bind('copy-ar-contract', async () => {
+        if (!contractArea.value) return show(() => t('newEntries.status.noContract'));
+        try { await navigator.clipboard.writeText(contractArea.value); }
+        catch {
+            contractArea.select();
+            if (!document.execCommand('copy')) return show(() => t('ar.copyFailed'));
+        }
+        show(() => t('newEntries.status.contractCopied'));
+    });
+    bind('load-ar-example', async () => {
+        const draft = input.value;
+        const current = contract ?? await fetchContract();
+        // Do not overwrite typing performed while the contract was loading.
+        if (input.value !== draft) return;
+        input.value = JSON.stringify(current.batch_example_payload, null, 2);
+        show(() => t('newEntries.status.exampleLoaded'));
+    });
+    bind('submit-ar-json', async () => {
+        let payload;
+        try { payload = JSON.parse(input.value); }
+        catch {
+            show(() => t('newEntries.validation.invalidJson'));
+            return;
+        }
+        const draft = input.value;
+        submit.disabled = true;
+        show(() => t('newEntries.status.submittingJson'));
+        try {
+            const result = await apiPost('/outgoing-invoices/batch', payload);
+            show(() => t('ar.batchResult').replace('{created}', result.created).replace('{failed}', result.failed)
+                + '\n' + JSON.stringify(result.invoices, null, 2));
+            if (result.created) document.dispatchEvent(new CustomEvent('accounting:outgoing-invoices-created'));
+            if (input.value === draft) {
+                // Leave only failed items for correction/retry, avoiding duplicate resubmission.
+                input.value = result.failed ? JSON.stringify({invoices: result.invoices
+                    .filter(item => item.status === 'failed').map(item => payload.invoices[item.index])}, null, 2) : '';
+            }
+        } finally { submit.disabled = false; }
+    });
+    document.addEventListener('accounting:language-changed', () => { status.textContent = renderStatus(); });
 }

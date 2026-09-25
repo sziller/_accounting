@@ -1,25 +1,17 @@
 <section
-        class="card source-image-card"
+        class="card source-image-card inspection-card"
         aria-labelledby="source-image-heading">
 
-    <div class="source-image-heading-row">
-        <div>
-            <h2
-                    id="source-image-heading"
-                    data-i18n="ap.sourceImage">
-                Source Image
-            </h2>
-
-            <p
-                    class="muted"
-                    data-i18n="ap.sourceImageHelp">
-                JPEG source associated with the selected entry.
-            </p>
-        </div>
+    <div class="inspection-heading-row">
+        <h2
+                id="source-image-heading"
+                data-i18n="ap.sourceImage">
+            Source Document
+        </h2>
 
         <div
-                class="source-image-navigation"
-                aria-label="Entry image navigation"
+                class="inspection-navigation"
+                aria-label="Entry document navigation"
                 data-i18n-aria-label="ap.sourceImage.entryNavigation">
 
             <button
@@ -44,7 +36,22 @@
         </div>
     </div>
 
+    <div class="inspection-file-row">
+        <code id="source-image-filename">None selected</code>
+
+        <a
+                id="source-document-link"
+                class="inspection-open-button"
+                target="_blank"
+                rel="noopener"
+                hidden>
+            Open
+        </a>
+    </div>
+
+    <!-- Image-only controls. Hidden automatically when a PDF is selected. -->
     <div
+            id="source-image-tools"
             class="source-image-tools"
             role="group"
             aria-label="Image zoom controls"
@@ -83,40 +90,39 @@
         </button>
     </div>
 
-    <div
-            class="source-image-frame"
-            id="source-image-frame"
-            tabindex="0"
-            role="region"
-            aria-label="Source image viewer. Ctrl+wheel or plus and minus to zoom; drag to pan; 0 to fit."
-            data-i18n-aria-label="ap.sourceImage.viewerHelp">
+    <!-- Both renderers occupy the same permanent stage. -->
+    <div class="source-document-stage">
+        <!-- Image renderer -->
+        <div
+                class="source-image-frame"
+                id="source-image-frame"
+                tabindex="0"
+                role="region"
+                aria-label="Source image viewer. Ctrl+wheel or plus and minus to zoom; drag to pan; 0 to fit."
+                data-i18n-aria-label="ap.sourceImage.viewerHelp">
 
-        <img
-                id="source-image"
-                alt="Source document for the selected entry"
-                data-i18n-alt="ap.sourceImage.alt"
-                draggable="false"
+            <img
+                    id="source-image"
+                    alt="Source document for the selected entry"
+                    data-i18n-alt="ap.sourceImage.alt"
+                    draggable="false"
+                    hidden>
+
+            <p
+                    class="source-image-empty"
+                    id="source-image-empty"
+                    data-i18n="ap.sourceImage.empty">
+                Select an entry to display its source document.
+            </p>
+        </div>
+
+        <!-- PDF renderer -->
+        <iframe
+                id="source-document-pdf"
+                class="source-document-pdf"
+                title="Source PDF"
                 hidden>
-
-        <p
-                class="source-image-empty"
-                id="source-image-empty"
-                data-i18n="ap.sourceImage.empty">
-            Select an entry to display its source JPEG.
-        </p>
+        </iframe>
     </div>
 
-    <div class="source-image-meta">
-        <span
-                class="muted"
-                data-i18n="ap.sourceImage.file">
-            File:
-        </span>
-
-        <span
-                id="source-image-filename"
-                data-i18n="ap.sourceImage.noneSelected">
-            None selected
-        </span>
-    </div>
 </section>

@@ -202,8 +202,6 @@ class ReceivablesTests(unittest.TestCase):
             self.assertEqual(self.request("PATCH", path, {field: "59"})[0], 400)
             self.assertEqual(self.request("PATCH", path, {"currency": "USD"})[0], 400)
             self.assertEqual(self.request("PATCH", path, {field: "60"})[0], 200)
-            if path.startswith("outgoing-invoices/"):
-                self.assertEqual(self.request("DELETE", path)[0], 405)
 
     def test_delete_unallocated_and_missing_payment(self):
         payment = self.payment()
@@ -279,9 +277,9 @@ class ReceivablesTests(unittest.TestCase):
         self.assertEqual([a["id"] for a in current["allocations"]], [allocation["id"]])
 
     def test_delete_and_allocation_creation_serialize_in_both_orders(self):
-        for first in ("delete", "allocate"):
-            with self.subTest(first=first):
-                invoice, payment = self.invoice("RACE-" + first), self.payment()
+        for target, first in ((target, first) for target in ('payment', 'invoice') for first in ('delete', 'allocate')):
+            with self.subTest(target=target, first=first):
+                invoice, payment = self.invoice(f"RACE-{target}-{first}"), self.payment()
                 self.allocate(invoice, payment, "10")
                 locked, attempted, release = Event(), Event(), Event()
 
@@ -300,7 +298,10 @@ class ReceivablesTests(unittest.TestCase):
                         service = ReceivablesService(db)
                         try:
                             if kind == "delete":
-                                service.delete_incoming_payment(payment["id"])
+                                if target == 'payment':
+                                    service.delete_incoming_payment(payment["id"])
+                                else:
+                                    service.delete_outgoing_invoice(invoice["id"])
                             else:
                                 service.create_allocation(InvoicePaymentAllocationCreateSchema(
                                     invoice_id=invoice["id"], payment_id=payment["id"], amount_allocated="20"))
@@ -327,9 +328,9 @@ class ReceivablesTests(unittest.TestCase):
                     event.remove(self.engine, "after_cursor_execute", hold_writer)
                     event.remove(self.engine, "before_cursor_execute", competing_writer)
                 with Session(self.engine) as db:
-                    self.assertIsNone(db.get(IncomingPaymentORM, payment["id"]))
+                    self.assertEqual(db.get(IncomingPaymentORM, payment["id"]) is None, target == 'payment')
                     self.assertEqual(list(db.scalars(select(InvoicePaymentAllocationORM).filter_by(payment_id=payment["id"]))), [])
-                    self.assertIsNotNone(db.get(OutgoingInvoiceORM, invoice["id"]))
+                    self.assertEqual(db.get(OutgoingInvoiceORM, invoice["id"]) is None, target == 'invoice')
 
     def test_status_precedence(self):
         yesterday = (date.today() - timedelta(days=1)).isoformat()

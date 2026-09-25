@@ -1,16 +1,18 @@
 # Explicit AR PDF archive import
 
+Legacy compatibility workflow. For new invoices use [contract-based recognition](outgoing_invoice_recognition.md); the AR UI no longer scans or imports this directory.
+
 ## Configuration and scope
 
 Canonical settings in `app/core/config.py`:
 
 ```python
-AP_SOURCE_IMAGE_DIRECTORY = DATA_DIR / "AP_source_images"
-AR_INVOICE_PDF_DIRECTORY = DATA_DIR / "AR_invoice_pdf"
+AP_SOURCE_DOCUMENT_DIRECTORY = DATA_DIR / "AP_source_files"
+AR_SOURCE_DOCUMENT_DIRECTORY = DATA_DIR / "AR_source_files"
 ```
 
 All internal references/tests have been migrated; no ambiguous compatibility
-aliases remain. The AP URL remains `GET /acct/v0/source-images/{filename}`.
+aliases remain. The AP URL remains `GET /acct/v0/source-documents/{filename}`.
 AR import does not change AP recognition, accounting entries, payments, or
 allocations. The Accounts Receivable view provides explicit processing controls.
 There is no startup import or filesystem watcher.
@@ -96,7 +98,7 @@ or monetary layouts need explicit parser extensions and representative fixtures.
 
 The Accounts Receivable view loads both datasets on initialization and on Refresh:
 `GET /acct/v0/outgoing-invoices/source-files` returns
-`{"directory":"AR_invoice_pdf","files":["example.pdf"]}`, and
+`{"directory":"AR_source_files","files":["example.pdf"]}`, and
 `GET /acct/v0/outgoing-invoices` returns a bare array of invoice records. Source
 filenames are sorted, case-insensitive by extension only, and omit directories
 and symlinks outside the archive. A missing/empty directory returns an empty list;

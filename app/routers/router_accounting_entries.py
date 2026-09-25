@@ -82,12 +82,20 @@ class AccountingEntriesRouter(APIRouter):
         self.add_api_route('/v0/entries/process', self.process_entries, methods=['POST'])
         self.add_api_route('/v0/entries/{entry_id}/process', self.process_entry, methods=['POST'])
         self.add_api_route(
-            path="/v0/source-images/{filename}",
-            endpoint=self.get_source_image,
+            path="/v0/source-documents/{filename}",
+            endpoint=self.get_source_document,
             methods=["GET"],
             response_class=FileResponse,
-            responses={200: {"content": {"image/jpeg": {}}}},
-            summary="Get a JPEG source document by its exact filename",
+            responses={
+                200: {
+                    "content": {
+                        "image/jpeg": {},
+                        "image/png": {},
+                        "application/pdf": {},
+                    }
+                }
+            },
+            summary="Get a source document by its exact filename",
         )
 
         self.add_api_route(
@@ -166,26 +174,72 @@ class AccountingEntriesRouter(APIRouter):
     def _service(db: Session) -> AccountingEntryService:
         return AccountingEntryService(db=db)
 
-    def get_source_image(self, filename: str) -> FileResponse:
-        """Serve an exact basename from the configured source directory, without DB access."""
+    def get_source_document(self, filename: str) -> FileResponse:
+        """
+        Serve an exact source-document basename from the configured AP document
+        directory without database access.
+
+        Supported document types:
+        - .jpg / .jpeg
+        - .png
+        - .pdf
+
+        Path traversal and symlink escapes outside the configured directory are
+        rejected.
+        """
+
         if not filename or filename in {".", ".."} or any(
-            character in filename for character in ("/", "\\", "\x00")
+                character in filename for character in ("/", "\\", "\x00")
         ):
-            raise HTTPException(status_code=400, detail="Invalid source image filename")
-        if Path(filename).suffix.lower() not in {".jpg", ".jpeg"}:
-            raise HTTPException(status_code=415, detail="Only .jpg and .jpeg source images are supported")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid source document filename",
+            )
 
-        directory = config.AP_SOURCE_IMAGE_DIRECTORY.resolve()
+        media_types = {
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".png": "image/png",
+            ".pdf": "application/pdf",
+        }
+
+        suffix = Path(filename).suffix.lower()
+        media_type = media_types.get(suffix)
+
+        if media_type is None:
+            raise HTTPException(
+                status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                detail="Unsupported source document type",
+            )
+
+        directory = config.AP_SOURCE_DOCUMENT_DIRECTORY.resolve()
+
         try:
-            image_path = (directory / filename).resolve()
+            document_path = (directory / filename).resolve()
         except (OSError, RuntimeError):
-            raise HTTPException(status_code=404, detail="Source image not found") from None
-        if not image_path.is_relative_to(directory):
-            raise HTTPException(status_code=400, detail="Invalid source image filename")
-        if not image_path.is_file():
-            raise HTTPException(status_code=404, detail="Source image not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Source document not found",
+            ) from None
 
-        return FileResponse(image_path, media_type="image/jpeg")
+        if not document_path.is_relative_to(directory):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid source document filename",
+            )
+
+        if not document_path.is_file():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Source document not found",
+            )
+
+        return FileResponse(
+            document_path,
+            media_type=media_type,
+            filename=filename,
+            content_disposition_type="inline",
+        )
 
     def create_entry(
             self,

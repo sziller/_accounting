@@ -174,6 +174,20 @@ class ReceivablesService:
             result = self._invoice_read(row)
         return result
 
+    def delete_outgoing_invoice(self, identity):
+        """Delete the invoice and its allocations, preserving all parent payments.
+
+        Accounting entries have independent invoice metadata, not an AR link.
+        Source PDF metadata is removed with the row; no archive access is needed.
+        """
+        with self._write():
+            invoice = self._get(OutgoingInvoiceORM, identity)
+            for allocation in self._allocations(invoice_id=invoice.id):
+                self.db.delete(allocation)
+            # Flush children before the RESTRICT parent; commit only in _write.
+            self.db.flush()
+            self.db.delete(invoice)
+
     def _calculate_common_amount(self, row):
         """Shared AR monetary calculation; preserves invoice-date FX policy."""
         conversion = LocalCurrencyConversion(self.db)

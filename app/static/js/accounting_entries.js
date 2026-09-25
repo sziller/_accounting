@@ -119,8 +119,9 @@ function fillSelect(
     }
 }
 
-function getCategoryDisplayLabel(categoryCode) {
-    const category = metadata.categories.find(
+
+function getCategoryDisplayLabel(categoryCode, categories) {
+    const category = categories.find(
         item => item.code === categoryCode
     );
 
@@ -134,6 +135,7 @@ function getCategoryDisplayLabel(categoryCode) {
         fallback
     );
 }
+
 
 function fillDetailCategorySelect(categories) {
     const select = document.getElementById(
@@ -166,7 +168,7 @@ function fillDetailCategorySelect(categories) {
          * backend-provided label.
          */
         const translatedLabel =
-            getCategoryDisplayLabel(category.code);
+            getCategoryDisplayLabel(category.code, categories);
 
         option.textContent =
             `${category.code} — ${translatedLabel}`;
@@ -261,7 +263,14 @@ export async function initializeAccountsPayable({metadata} = {}) {
     }
 
     const entriesBody = document.getElementById("entries-body");
+    const previousEntryButton =
+        document.getElementById("previous-entry");
 
+    const nextEntryButton =
+        document.getElementById("next-entry");
+
+    const refreshEntriesButton =
+        document.getElementById("refresh-entries");
     const reprocessPendingConversionsButton = document.getElementById(
         "reprocess-pending-conversions"
     );
@@ -274,21 +283,64 @@ export async function initializeAccountsPayable({metadata} = {}) {
     const saveEntryEditButton = document.getElementById("save-entry-edit");
     const cancelEntryEditButton = document.getElementById("cancel-entry-edit");
 
+    /*
+     * AP source-document viewer.
+     *
+     * The selected entry supplies one exact source_filename.
+     *
+     * Supported renderers:
+     * - JPG/JPEG/PNG -> image renderer + image zoom/pan controls
+     * - PDF          -> PDF iframe, without image zoom/pan controls
+     */
     const sourceImage = document.getElementById("source-image");
-    const sourceImageFilename = document.getElementById(
+    const sourceDocumentPdf = document.getElementById("source-document-pdf");
+    const sourceDocumentLink = document.getElementById("source-document-link");
+
+    /*
+     * The filename element still uses its original ID in the HTML.
+     * It now displays a generic source-document path.
+     */
+    const sourceDocumentFilename = document.getElementById(
         "source-image-filename"
     );
+
     const sourceImageEmpty = document.getElementById("source-image-empty");
 
     const previousSourceImage = document.getElementById(
         "previous-source-image"
     );
-    const nextSourceImage = document.getElementById("next-source-image");
 
-    const sourceImageFrame = document.getElementById("source-image-frame");
-    const zoomOut = document.getElementById("source-image-zoom-out");
-    const zoomIn = document.getElementById("source-image-zoom-in");
-    const zoomReset = document.getElementById("source-image-reset");
+    const nextSourceImage = document.getElementById(
+        "next-source-image"
+    );
+
+    const sourceImageFrame = document.getElementById(
+        "source-image-frame"
+    );
+
+    const sourceImageTools = document.getElementById(
+        "source-image-tools"
+    );
+
+    const zoomOut = document.getElementById(
+        "source-image-zoom-out"
+    );
+
+    const zoomIn = document.getElementById(
+        "source-image-zoom-in"
+    );
+
+    const zoomReset = document.getElementById(
+        "source-image-reset"
+    );
+
+    const SOURCE_DOCUMENT_DIRECTORY_LABEL = "AP_source_files";
+
+    const IMAGE_SOURCE_EXTENSIONS = new Set([
+        "jpg",
+        "jpeg",
+        "png",
+    ]);
 
     let processingEntries = false;
     let selectedEntry = null;
@@ -309,12 +361,7 @@ export async function initializeAccountsPayable({metadata} = {}) {
     const MAX_ZOOM = 10;
 
     /*
-     * AP now owns its own visible status output.
-     *
-     * Previously AP wrote status messages into #message, which belongs to
-     * the New Entries view. Until a dedicated AP editor-status element is
-     * introduced, the existing AP processing-status element is the local
-     * status target.
+     * AP owns its own visible status output.
      */
     function showMessage(text) {
         processingStatus.textContent = text;
@@ -357,9 +404,11 @@ export async function initializeAccountsPayable({metadata} = {}) {
 
     function renderImageTransform() {
         const state = imageViewerState;
-        const ready = !sourceImage.hidden && sourceImage.naturalWidth > 0;
 
-        // Measure the contained JPEG, not the letterboxed <img> element.
+        const ready =
+            !sourceImage.hidden
+            && sourceImage.naturalWidth > 0;
+
         const width = sourceImage.clientWidth;
         const height = sourceImage.clientHeight;
 
@@ -372,16 +421,33 @@ export async function initializeAccountsPayable({metadata} = {}) {
 
         const limitX = Math.max(
             0,
-            (sourceImage.naturalWidth * fit * state.scale - width) / 2
+            (
+                sourceImage.naturalWidth
+                * fit
+                * state.scale
+                - width
+            ) / 2
         );
 
         const limitY = Math.max(
             0,
-            (sourceImage.naturalHeight * fit * state.scale - height) / 2
+            (
+                sourceImage.naturalHeight
+                * fit
+                * state.scale
+                - height
+            ) / 2
         );
 
-        state.x = Math.max(-limitX, Math.min(limitX, state.x));
-        state.y = Math.max(-limitY, Math.min(limitY, state.y));
+        state.x = Math.max(
+            -limitX,
+            Math.min(limitX, state.x)
+        );
+
+        state.y = Math.max(
+            -limitY,
+            Math.min(limitY, state.y)
+        );
 
         sourceImage.style.transform =
             `translate(${state.x}px, ${state.y}px) scale(${state.scale})`;
@@ -396,14 +462,21 @@ export async function initializeAccountsPayable({metadata} = {}) {
             state.pointerId !== null
         );
 
-        zoomOut.disabled = !ready || state.scale <= 1;
-        zoomIn.disabled = !ready || state.scale >= MAX_ZOOM;
+        zoomOut.disabled =
+            !ready
+            || state.scale <= 1;
+
+        zoomIn.disabled =
+            !ready
+            || state.scale >= MAX_ZOOM;
+
         zoomReset.disabled = !ready;
     }
 
 
     function stopImagePan() {
         const id = imageViewerState.pointerId;
+
         imageViewerState.pointerId = null;
 
         if (
@@ -413,18 +486,23 @@ export async function initializeAccountsPayable({metadata} = {}) {
             sourceImageFrame.releasePointerCapture(id);
         }
 
-        sourceImageFrame.classList.remove("is-dragging");
+        sourceImageFrame.classList.remove(
+            "is-dragging"
+        );
     }
 
 
     function resetImageTransform() {
         stopImagePan();
 
-        Object.assign(imageViewerState, {
-            scale: 1,
-            x: 0,
-            y: 0,
-        });
+        Object.assign(
+            imageViewerState,
+            {
+                scale: 1,
+                x: 0,
+                y: 0,
+            }
+        );
 
         renderImageTransform();
     }
@@ -449,20 +527,67 @@ export async function initializeAccountsPayable({metadata} = {}) {
     }
 
 
-    function updateSourceImage(entry) {
-        const filename = entry.source_filename;
+    function sourceDocumentExtension(filename) {
+        const separator = filename.lastIndexOf(".");
 
+        return separator >= 0
+            ? filename
+                .slice(separator + 1)
+                .toLowerCase()
+            : "";
+    }
+
+
+    function clearSourceDocumentRenderers() {
+        /*
+         * Image renderer.
+         */
         sourceImage.hidden = true;
-        resetImageTransform();
-
         sourceImage.onload = null;
         sourceImage.onerror = null;
         sourceImage.removeAttribute("src");
 
-        sourceImageFilename.textContent =
-            filename || t("ap.sourceImage.noSource");
+        /*
+         * PDF renderer.
+         */
+        sourceDocumentPdf.hidden = true;
+        sourceDocumentPdf.removeAttribute("src");
 
+        /*
+         * Image-only controls.
+         */
+        sourceImageTools.hidden = true;
+
+        /*
+         * Generic Open link.
+         */
+        sourceDocumentLink.hidden = true;
+        sourceDocumentLink.removeAttribute("href");
+
+        /*
+         * Restore the generic image frame so status/error messages
+         * have somewhere to render.
+         */
+        sourceImageFrame.hidden = false;
         sourceImageEmpty.hidden = false;
+
+        resetImageTransform();
+    }
+
+
+    function updateSourceDocument(entry) {
+        const filename = entry.source_filename;
+
+        clearSourceDocumentRenderers();
+
+        /*
+         * Display the relative source-document path rather than only
+         * the basename.
+         */
+        sourceDocumentFilename.textContent = filename
+            ? `${SOURCE_DOCUMENT_DIRECTORY_LABEL}/${filename}`
+            : t("ap.sourceImage.noSource");
+
         sourceImageEmpty.textContent =
             t("ap.sourceImage.noSourceAssociated");
 
@@ -471,38 +596,91 @@ export async function initializeAccountsPayable({metadata} = {}) {
         }
 
         const url =
-            `${API_BASE}/source-images/${encodeURIComponent(filename)}`;
+            `${API_BASE}/source-documents/${encodeURIComponent(filename)}`;
+
+        const extension =
+            sourceDocumentExtension(filename);
+
+        /*
+         * Open button works for every supported source-document type.
+         */
+        sourceDocumentLink.href = url;
+        sourceDocumentLink.hidden = false;
+
+        /*
+         * IMAGE DOCUMENT
+         */
+        if (IMAGE_SOURCE_EXTENSIONS.has(extension)) {
+            sourceImageTools.hidden = false;
+            sourceImageFrame.hidden = false;
+            sourceImageEmpty.hidden = false;
+
+            sourceImageEmpty.textContent =
+                t("ap.sourceImage.loading");
+
+            sourceImage.onload = () => {
+                if (
+                    sourceImage.getAttribute("src") !== url
+                    || !sourceImage.naturalWidth
+                ) {
+                    return;
+                }
+
+                sourceImage.hidden = false;
+                sourceImageEmpty.hidden = true;
+
+                resetImageTransform();
+            };
+
+            sourceImage.onerror = () => {
+                if (
+                    sourceImage.getAttribute("src") !== url
+                ) {
+                    return;
+                }
+
+                sourceImage.hidden = true;
+
+                resetImageTransform();
+
+                sourceImageEmpty.hidden = false;
+                sourceImageEmpty.textContent =
+                    t("ap.sourceImage.loadFailed");
+            };
+
+            sourceImage.src = url;
+
+            return;
+        }
+
+        /*
+         * PDF DOCUMENT
+         *
+         * PDF rendering uses the browser-native iframe viewer.
+         * AP image zoom/pan controls are deliberately hidden because
+         * the PDF renderer provides its own controls.
+         */
+        if (extension === "pdf") {
+            sourceImageFrame.hidden = true;
+            sourceImageTools.hidden = true;
+
+            sourceDocumentPdf.src = url;
+            sourceDocumentPdf.hidden = false;
+
+            return;
+        }
+
+        /*
+         * Unsupported document type.
+         */
+        sourceDocumentLink.hidden = true;
+        sourceDocumentLink.removeAttribute("href");
+
+        sourceImageFrame.hidden = false;
+        sourceImageEmpty.hidden = false;
 
         sourceImageEmpty.textContent =
-            t("ap.sourceImage.loading");
-
-        sourceImage.onload = () => {
-            if (
-                sourceImage.getAttribute("src") !== url
-                || !sourceImage.naturalWidth
-            ) {
-                return;
-            }
-
-            sourceImage.hidden = false;
-            sourceImageEmpty.hidden = true;
-            resetImageTransform();
-        };
-
-        sourceImage.onerror = () => {
-            if (sourceImage.getAttribute("src") !== url) {
-                return;
-            }
-
-            sourceImage.hidden = true;
-            resetImageTransform();
-
-            sourceImageEmpty.hidden = false;
-            sourceImageEmpty.textContent =
-                t("ap.sourceImage.loadFailed");
-        };
-
-        sourceImage.src = url;
+            `Unsupported source document type: ${extension || "unknown"}`;
     }
 
 
@@ -511,11 +689,38 @@ export async function initializeAccountsPayable({metadata} = {}) {
             entry => entry.id === selectedEntry?.id
         );
 
-        previousSourceImage.disabled = index <= 0;
+        const previousDisabled =
+            processingEntries
+            || detailEditUnlocked
+            || index <= 0;
+
+        const nextDisabled =
+            processingEntries
+            || detailEditUnlocked
+            || index < 0
+            || index >= listedEntries.length - 1;
+
+        /*
+         * Source-document navigation.
+         */
+        previousSourceImage.disabled =
+            previousDisabled;
 
         nextSourceImage.disabled =
-            index < 0
-            || index >= listedEntries.length - 1;
+            nextDisabled;
+
+        /*
+         * Entries-list navigation.
+         */
+        previousEntryButton.disabled =
+            previousDisabled;
+
+        nextEntryButton.disabled =
+            nextDisabled;
+
+        refreshEntriesButton.disabled =
+            processingEntries
+            || detailEditUnlocked;
 
         for (
             const row
@@ -524,8 +729,15 @@ export async function initializeAccountsPayable({metadata} = {}) {
             const selected =
                 row.dataset.entryId === selectedEntry?.id;
 
-            row.classList.toggle("is-selected", selected);
-            row.setAttribute("aria-selected", String(selected));
+            row.classList.toggle(
+                "is-selected",
+                selected
+            );
+
+            row.setAttribute(
+                "aria-selected",
+                String(selected)
+            );
         }
     }
 
@@ -579,16 +791,17 @@ export async function initializeAccountsPayable({metadata} = {}) {
             tr.classList.add("entry-row");
             tr.dataset.entryId = entry.id;
 
-            const pending = t("ap.table.pending");
+            const pending =
+                t("ap.table.pending");
 
             tr.innerHTML = `
-            <td>${entry.payment_date}</td>
-            <td>${entry.counterparty_name}</td>
-            <td>${getCategoryDisplayLabel(entry.category_code)}</td>
-            <td>${entry.amount_common ?? pending} ${entry.currency_common}</td>
-            <td>${entry.vat_amount ?? pending}</td>
-            <td>${entry.deductible_amount ?? pending}</td>
-        `;
+                <td>${entry.payment_date}</td>
+                <td>${entry.counterparty_name}</td>
+                <td>${getCategoryDisplayLabel(entry.category_code, metadata.categories)}</td>
+                <td>${entry.amount_common ?? pending} ${entry.currency_common}</td>
+                <td>${entry.vat_amount ?? pending}</td>
+                <td>${entry.deductible_amount ?? pending}</td>
+            `;
 
             tr.addEventListener(
                 "click",
@@ -614,12 +827,59 @@ export async function initializeAccountsPayable({metadata} = {}) {
         renderEntries();
     }
 
+    async function refreshEntriesList() {
+        if (
+            processingEntries
+            || detailEditUnlocked
+        ) {
+            return;
+        }
+
+        const selectedId =
+            selectedEntry?.id ?? null;
+
+        refreshEntriesButton.disabled = true;
+
+        try {
+            await loadEntries();
+
+            /*
+             * Preserve the current selection across refresh when the
+             * corresponding database record still exists.
+             */
+            if (
+                selectedId
+                && listedEntries.some(
+                    entry => entry.id === selectedId
+                )
+            ) {
+                await loadEntryDetail(
+                    selectedId
+                );
+            }
+
+            showMessage(
+                "Entries refreshed."
+            );
+        } catch (error) {
+            showMessage(
+                formatApiError(error)
+            );
+        } finally {
+            updateEntrySelection();
+        }
+    }
+
 
     function setValue(id, value) {
-        const element = document.getElementById(id);
+        const element =
+            document.getElementById(id);
 
         if (!element) {
-            console.warn(`Missing detail element: ${id}`);
+            console.warn(
+                `Missing detail element: ${id}`
+            );
+
             return;
         }
 
@@ -628,10 +888,14 @@ export async function initializeAccountsPayable({metadata} = {}) {
 
 
     function setChecked(id, value) {
-        const element = document.getElementById(id);
+        const element =
+            document.getElementById(id);
 
         if (!element) {
-            console.warn(`Missing checkbox element: ${id}`);
+            console.warn(
+                `Missing checkbox element: ${id}`
+            );
+
             return;
         }
 
@@ -669,7 +933,8 @@ export async function initializeAccountsPayable({metadata} = {}) {
         ];
 
         for (const id of editableIds) {
-            const element = document.getElementById(id);
+            const element =
+                document.getElementById(id);
 
             if (element) {
                 element.disabled = !enabled;
@@ -694,10 +959,13 @@ export async function initializeAccountsPayable({metadata} = {}) {
     function populateDetailForm(entry) {
         selectedEntry = entry;
 
-        updateSourceImage(entry);
+        updateSourceDocument(entry);
         updateEntrySelection();
 
-        setValue("detail_id", entry.id);
+        setValue(
+            "detail_id",
+            entry.id
+        );
 
         setValue(
             "detail_entry_type",
@@ -855,7 +1123,8 @@ export async function initializeAccountsPayable({metadata} = {}) {
 
 
     async function loadEntryDetail(entryId) {
-        const requestId = ++detailRequestId;
+        const requestId =
+            ++detailRequestId;
 
         try {
             const entry = await apiGet(
@@ -872,15 +1141,18 @@ export async function initializeAccountsPayable({metadata} = {}) {
                 return;
             }
 
-            showMessage(formatApiError(error));
+            showMessage(
+                formatApiError(error)
+            );
         }
     }
 
 
     function collectDetailPayload() {
-        const hasInvoice = document.getElementById(
-            "detail_has_invoice"
-        ).checked;
+        const hasInvoice =
+            document.getElementById(
+                "detail_has_invoice"
+            ).checked;
 
         return {
             entry_type:
@@ -965,14 +1237,21 @@ export async function initializeAccountsPayable({metadata} = {}) {
             showMessage(
                 t("ap.status.noEntrySelected")
             );
+
             return;
         }
 
-        const payload = collectDetailPayload();
-        const errors = validatePayloadClientSide(payload);
+        const payload =
+            collectDetailPayload();
+
+        const errors =
+            validatePayloadClientSide(payload);
 
         if (errors.length > 0) {
-            showMessage(errors.join("\n"));
+            showMessage(
+                errors.join("\n")
+            );
+
             return;
         }
 
@@ -983,13 +1262,16 @@ export async function initializeAccountsPayable({metadata} = {}) {
             );
 
             populateDetailForm(updated);
+
             await loadEntries();
 
             showMessage(
                 `${t("ap.status.updatedEntry")}: ${updated.id}`
             );
         } catch (error) {
-            showMessage(formatApiError(error));
+            showMessage(
+                formatApiError(error)
+            );
         }
     }
 
@@ -1006,6 +1288,7 @@ export async function initializeAccountsPayable({metadata} = {}) {
         const id = selectedEntry?.id;
 
         processingEntries = true;
+
         setDetailEditable(false);
 
         processingStatus.textContent =
@@ -1045,6 +1328,7 @@ export async function initializeAccountsPayable({metadata} = {}) {
                 formatApiError(error);
         } finally {
             processingEntries = false;
+
             setDetailEditable(false);
         }
     }
@@ -1072,6 +1356,22 @@ export async function initializeAccountsPayable({metadata} = {}) {
         () => selectAdjacentEntry(1)
     );
 
+    previousEntryButton.addEventListener(
+        "click",
+        () => selectAdjacentEntry(-1)
+    );
+
+
+    nextEntryButton.addEventListener(
+        "click",
+        () => selectAdjacentEntry(1)
+    );
+
+
+    refreshEntriesButton.addEventListener(
+        "click",
+        refreshEntriesList
+    );
 
     zoomOut.addEventListener(
         "click",
@@ -1111,7 +1411,9 @@ export async function initializeAccountsPayable({metadata} = {}) {
                 );
             }
         },
-        {passive: false}
+        {
+            passive: false,
+        }
     );
 
 
@@ -1127,7 +1429,9 @@ export async function initializeAccountsPayable({metadata} = {}) {
                 return;
             }
 
-            if (!["+", "-", "0"].includes(event.key)) {
+            if (
+                !["+", "-", "0"].includes(event.key)
+            ) {
                 return;
             }
 
@@ -1164,11 +1468,14 @@ export async function initializeAccountsPayable({metadata} = {}) {
                 preventScroll: true,
             });
 
-            Object.assign(imageViewerState, {
-                pointerId: event.pointerId,
-                lastX: event.clientX,
-                lastY: event.clientY,
-            });
+            Object.assign(
+                imageViewerState,
+                {
+                    pointerId: event.pointerId,
+                    lastX: event.clientX,
+                    lastY: event.clientY,
+                }
+            );
 
             sourceImageFrame.setPointerCapture(
                 event.pointerId
@@ -1182,17 +1489,29 @@ export async function initializeAccountsPayable({metadata} = {}) {
     sourceImageFrame.addEventListener(
         "pointermove",
         event => {
-            const state = imageViewerState;
+            const state =
+                imageViewerState;
 
-            if (event.pointerId !== state.pointerId) {
+            if (
+                event.pointerId
+                !== state.pointerId
+            ) {
                 return;
             }
 
-            state.x += event.clientX - state.lastX;
-            state.y += event.clientY - state.lastY;
+            state.x +=
+                event.clientX
+                - state.lastX;
 
-            state.lastX = event.clientX;
-            state.lastY = event.clientY;
+            state.y +=
+                event.clientY
+                - state.lastY;
+
+            state.lastX =
+                event.clientX;
+
+            state.lastY =
+                event.clientY;
 
             renderImageTransform();
         }
@@ -1222,7 +1541,9 @@ export async function initializeAccountsPayable({metadata} = {}) {
 
     new ResizeObserver(
         renderImageTransform
-    ).observe(sourceImageFrame);
+    ).observe(
+        sourceImageFrame
+    );
 
 
     if (reprocessPendingConversionsButton) {
@@ -1247,6 +1568,7 @@ export async function initializeAccountsPayable({metadata} = {}) {
                     showMessage(
                         t("ap.status.selectEntryFirst")
                     );
+
                     return;
                 }
 
@@ -1281,12 +1603,14 @@ export async function initializeAccountsPayable({metadata} = {}) {
                 }
 
                 setDetailEditable(false);
+
                 showMessage(
                     t("ap.status.editCancelled")
                 );
             }
         );
     }
+
 
     document.addEventListener(
         "accounting:language-changed",
@@ -1295,13 +1619,14 @@ export async function initializeAccountsPayable({metadata} = {}) {
             renderEntries();
 
             if (!selectedEntry) {
-                sourceImageFilename.textContent =
+                sourceDocumentFilename.textContent =
                     t("ap.sourceImage.noneSelected");
+
                 return;
             }
 
             if (!selectedEntry.source_filename) {
-                sourceImageFilename.textContent =
+                sourceDocumentFilename.textContent =
                     t("ap.sourceImage.noSource");
 
                 sourceImageEmpty.textContent =
@@ -1310,10 +1635,12 @@ export async function initializeAccountsPayable({metadata} = {}) {
         }
     );
 
+
     /*
      * Metadata supplied by app_bootstrap.js.
      */
     populateMetadata();
+
 
     /*
      * Initial AP dataset load.

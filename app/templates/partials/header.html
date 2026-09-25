@@ -59,28 +59,47 @@
         </button>
     </nav>
 
-    <div class="language-selector">
-        <label
-                for="language-select"
-                data-i18n="language.label">
-            Language
-        </label>
+    <div class="header-controls">
+        
 
-        <select
-                id="language-select"
-                name="language"
-                aria-label="Language">
-            <option
-                    value="en"
-                    data-i18n="language.english">
-                English
-            </option>
+        <div class="language-selector">
+            <label
+                    for="language-select"
+                    data-i18n="language.label">
+                Language
+            </label>
 
-            <option
-                    value="de"
-                    data-i18n="language.german">
-                German
-            </option>
-        </select>
+            <select
+                    id="language-select"
+                    name="language"
+                    aria-label="Language">
+                <option
+                        value="en"
+                        data-i18n="language.english">
+                    English
+                </option>
+
+                <option
+                        value="de"
+                        data-i18n="language.german">
+                    German
+                </option>
+
+                <option
+                        value="hu"
+                        data-i18n="language.hungarian">
+                    Hungarian
+                </option>
+            </select>
+        </div>
+        <button
+                id="theme-toggle"
+                class="theme-toggle"
+                type="button"
+                aria-label="Switch between light and dark mode"
+                title="Switch light/dark mode">
+            <span id="theme-toggle-icon" aria-hidden="true">☾</span>
+            <span id="theme-toggle-label">Dark</span>
+        </button>
     </div>
 </header>

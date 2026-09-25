@@ -44,7 +44,7 @@ class PdfExtractionTests(unittest.TestCase):
         self.root = Path(temporary.name)
         self.directory = self.root / "outgoing_invoices"
         self.directory.mkdir()
-        setting = patch.object(config, "AR_INVOICE_PDF_DIRECTORY", self.directory)
+        setting = patch.object(config, "AR_SOURCE_DOCUMENT_DIRECTORY", self.directory)
         setting.start()
         self.addCleanup(setting.stop)
 

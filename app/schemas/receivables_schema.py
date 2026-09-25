@@ -32,10 +32,10 @@ class ArRecognitionEventReadSchema(ReceivableSchema):
     allocation_id: str | None
 
 
-class OutgoingInvoiceCreateSchema(ReceivableSchema):
+class OutgoingInvoiceSourceSchema(ReceivableSchema):
+    """Shared document facts for CRUD and recognition; no accounting state."""
     invoice_number: RequiredText
     invoice_date: date
-    payment_date: date | None = None
     due_date: date | None = None
     customer_name: RequiredText
     customer_reference: OptionalText | None = None
@@ -43,12 +43,23 @@ class OutgoingInvoiceCreateSchema(ReceivableSchema):
     net_amount: Money | None = None
     vat_amount: Money | None = None
     gross_amount: PositiveMoney
+    pdf_filename: OptionalText | None = None
+    remarks: str | None = None
+
+    @model_validator(mode="after")
+    def validate_totals(self):
+        if self.net_amount is not None and self.vat_amount is not None:
+            if self.net_amount + self.vat_amount != self.gross_amount:
+                raise ValueError("net_amount + vat_amount must equal gross_amount")
+        return self
+
+
+class OutgoingInvoiceCreateSchema(OutgoingInvoiceSourceSchema):
+    payment_date: date | None = None
     currency_original: Currency
     amount_original: PositiveMoney
     currency_common: Currency = Field(default_factory=lambda: config.AR_COMMON_CURRENCY, validate_default=True)
-    pdf_filename: OptionalText | None = None
     pdf_sha256: PdfHash | None = None
-    remarks: str | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -66,10 +77,6 @@ class OutgoingInvoiceCreateSchema(ReceivableSchema):
     def validate_components(self):
         if self.currency_original != self.currency or self.amount_original != self.gross_amount:
             raise ValueError("Original currency/amount must agree with legacy currency/gross_amount")
-        # Explicit document totals must balance; no implicit rounding or repair.
-        if self.net_amount is not None and self.vat_amount is not None:
-            if self.net_amount + self.vat_amount != self.gross_amount:
-                raise ValueError("net_amount + vat_amount must equal gross_amount")
         return self
 
 

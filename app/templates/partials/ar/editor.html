@@ -1,25 +1,56 @@
 <section class="card">
-    <h2 data-i18n="ar.selectedInvoice">Selected Outgoing Invoice</h2>
+    <div class="editor-control-header">
+        <div class="editor-control-copy">
+            <h2 data-i18n="ar.selectedInvoice">
+                Selected Outgoing Invoice
+            </h2>
 
-    <button data-i18n="ar.processEntry" disabled id="process-ar-entry" type="button">
-        Process Entry
-    </button>
+            <p
+                    class="muted"
+                    data-i18n="ar.editorHelp">
+                Select an invoice from the table. Unlock editing to change persisted fields.
+            </p>
+        </div>
 
-    <p data-i18n="ar.editorHelp" class="muted">
-        Select an invoice from the table. Unlock editing to change persisted fields.
-    </p>
+        <div class="editor-action-stack">
+            <button
+                    class="editor-process-action"
+                    data-i18n="ar.processEntry"
+                    disabled
+                    id="process-ar-entry"
+                    type="button">
+                Process Entry
+            </button>
 
-    <div class="json-actions ar-editor-actions">
-        <button data-i18n="ar.unlockEditing" disabled id="unlock-ar-invoice-edit" type="button">
-            Unlock Editing
-        </button>
-        <button data-i18n="common.save" disabled id="save-ar-invoice-edit" type="button">
-            Save Changes
-        </button>
-        <button data-i18n="common.cancel" disabled id="cancel-ar-invoice-edit" type="button">
-            Cancel
-        </button>
+            <button
+                    data-i18n="ar.unlockEditing"
+                    disabled
+                    id="unlock-ar-invoice-edit"
+                    type="button">
+                Unlock Editing
+            </button>
+
+            <div class="editor-save-cancel">
+                <button
+                        data-i18n="common.save"
+                        disabled
+                        id="save-ar-invoice-edit"
+                        type="button">
+                    Save Changes
+                </button>
+
+                <button
+                        data-i18n="common.cancel"
+                        disabled
+                        id="cancel-ar-invoice-edit"
+                        type="button">
+                    Cancel
+                </button>
+            </div>
+        </div>
     </div>
+
+    <form class="form-grid" id="ar-invoice-detail-form">
 
     <form class="form-grid" id="ar-invoice-detail-form">
         <label>

@@ -18,6 +18,7 @@ export function initializeTableSort(table, columns, onChange) {
     let direction = 1;
     const headers = [...table.querySelectorAll("thead th")];
     headers.forEach((header, index) => {
+        if (!columns[index]) return; // Action columns do not sort data.
         const button = document.createElement("button");
         button.type = "button";
         button.className = "table-sort-button";

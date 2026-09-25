@@ -73,7 +73,7 @@ def load_outgoing_invoice_pdf(filename: str) -> ExtractedPdf:
     if Path(filename).suffix.lower() != ".pdf":
         raise PdfExtractionError("unsupported_extension", "Only .pdf source files are supported")
     try:
-        directory = config.AR_INVOICE_PDF_DIRECTORY.resolve()
+        directory = config.AR_SOURCE_DOCUMENT_DIRECTORY.resolve()
         source = (directory / filename).resolve()
         if not source.is_relative_to(directory):
             raise PdfExtractionError("invalid_filename", "Source PDF must remain inside the configured directory")

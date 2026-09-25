@@ -64,7 +64,7 @@ function reportFeatureError(feature, error) {
 
     if (feature === "Accounts Receivable") {
         const status = document.getElementById(
-            "ar-invoice-import-status"
+            "ar-invoice-editor-status"
         );
 
         if (status) {

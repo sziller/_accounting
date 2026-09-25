@@ -15,8 +15,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = PROJECT_ROOT / "data"
 
 # Set this to the directory containing the original JPEG source documents.
-AP_SOURCE_IMAGE_DIRECTORY = DATA_DIR / "AP_source_images"
-AR_INVOICE_PDF_DIRECTORY = DATA_DIR / "AR_invoice_pdf"
+
+AP_SOURCE_DOCUMENT_DIRECTORY = DATA_DIR / "AP_source_files"
+AR_SOURCE_DOCUMENT_DIRECTORY = DATA_DIR / "AR_source_files"
 AR_COMMON_CURRENCY = "EUR"
 
 # Inclusive start of MNB EUR/HUF history, through today.

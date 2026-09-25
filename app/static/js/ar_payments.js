@@ -183,7 +183,16 @@ export function initializeArPayments(refreshInvoices, onPayments = () => {}, del
     setText(save, () => t("common.save"));
     controls();
     void reload();
-    return {async refresh() {
+    return {async withRefreshLock(operation) {
+        if (busy) throw new Error(t('ar.deleteBusy'));
+        busy = true; controls();
+        try { return await operation(request, data => load(true, data)); }
+        finally { busy = false; controls(); }
+    }, invalidate() {
+        select(null);
+        onPayments([]);
+        tableMessage(() => t('payments.loadFailed'));
+    }, async refresh() {
         if (busy) return false;
         busy = true; controls();
         try { return await load(true); } finally { busy = false; controls(); }

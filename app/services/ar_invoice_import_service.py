@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 def list_ar_invoice_source_files() -> ArInvoiceSourceFilesSchema:
     """List readable archive candidates without importing or exposing paths."""
-    configured = config.AR_INVOICE_PDF_DIRECTORY
+    configured = config.AR_SOURCE_DOCUMENT_DIRECTORY
     try:
         directory = configured.resolve()
         files = sorted(path.name for path in directory.iterdir()
@@ -71,7 +71,7 @@ def process_ar_invoice_directory(*, session_factory=SessionLocal) -> ArInvoiceDi
     bytes, basenames, and modification times are never deliberately changed.
     """
     try:
-        names = sorted(path.name for path in config.AR_INVOICE_PDF_DIRECTORY.iterdir()
+        names = sorted(path.name for path in config.AR_SOURCE_DOCUMENT_DIRECTORY.iterdir()
                        if path.suffix.lower() == ".pdf")
     except OSError:
         raise PdfExtractionError("directory_unavailable", "AR PDF directory is missing or unreadable") from None

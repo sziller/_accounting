@@ -1,5 +1,6 @@
 import {EN} from "./en.js";
 import {DE} from "./de.js";
+import {HU} from "./hu.js";
 
 
 const STORAGE_KEY = "accounting.language";
@@ -8,6 +9,7 @@ const DEFAULT_LANGUAGE = "en";
 const TRANSLATIONS = {
     en: EN,
     de: DE,
+    hu: HU,
 };
 
 let currentLanguage = DEFAULT_LANGUAGE;
@@ -20,6 +22,7 @@ let currentLanguage = DEFAULT_LANGUAGE;
  *
  *     en
  *     de
+ *     hu (New Entries; other views fall back to English)
  *
  * Later another dictionary can be added here without changing the
  * translation mechanism itself.

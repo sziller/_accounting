@@ -11,12 +11,199 @@
  * - narrower Input workspace
  */
 
+/* ==========================================================================
+   GLOBAL SCALE + COLOR THEME
+   ========================================================================== */
+
+:root {
+    /* FONT SIZE CONTROL -----------------------------------------------------
+       Change this ONE value to scale most of the interface up/down.
+       14px = compact desktop UI; try 15px if you want it slightly larger. */
+    font-size: 12px;
+
+    /* Shared source-document display height for AP images, AP PDFs and AR PDFs. */
+    --document-viewer-height: 16rem;
+
+    /* Shared color tokens. */
+    --page-bg: #f4f5f7;
+    --card-bg: #ffffff;
+    --surface-muted: #f7f8fa;
+    --surface-hover: #eceff3;
+    --surface-selected: #e5edf5;
+    --text-color: #1f2328;
+    --text-muted: #626b76;
+    --border-color: rgba(31, 35, 40, 0.18);
+    --border-strong: rgba(31, 35, 40, 0.32);
+    --focus-color: #476e9e;
+    --danger-color: #a11717;
+    --danger-bg: #fff1f1;
+    --danger-contrast: #ffffff;
+
+
+}
+
+
+/* THEME SWITCHING ---------------------------------------------------------- */
+
+:root[data-theme="dark"] {
+    --page-bg: #171a1f;
+    --card-bg: #22262d;
+    --surface-muted: #292e36;
+    --surface-hover: #303640;
+    --surface-selected: #30465d;
+    --text-color: #e7eaf0;
+    --text-muted: #aab2bd;
+    --border-color: rgba(231, 234, 240, 0.18);
+    --border-strong: rgba(231, 234, 240, 0.34);
+    --focus-color: #86aee0;
+    --danger-color: #ff9090;
+    --danger-bg: #3b2024;
+    --danger-contrast: #ffffff;
+
+    --status-open-color: #ff8178;
+    --status-partial-color: #ffb34d;
+    --status-paid-color: #62d68b;
+}
+
+:root[data-theme="light"] {
+    --page-bg: #f4f5f7;
+    --card-bg: #ffffff;
+    --surface-muted: #f7f8fa;
+    --surface-hover: #eceff3;
+    --surface-selected: #e5edf5;
+    --text-color: #1f2328;
+    --text-muted: #626b76;
+    --border-color: rgba(31, 35, 40, 0.18);
+    --border-strong: rgba(31, 35, 40, 0.32);
+    --focus-color: #476e9e;
+    --danger-color: #a11717;
+    --danger-bg: #fff1f1;
+    --danger-contrast: #ffffff;
+
+    --status-open-color: #b42318;
+    --status-partial-color: #b56a00;
+    --status-paid-color: #16803a;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --page-bg: #171a1f;
+        --card-bg: #22262d;
+        --surface-muted: #292e36;
+        --surface-hover: #303640;
+        --surface-selected: #30465d;
+        --text-color: #e7eaf0;
+        --text-muted: #aab2bd;
+        --border-color: rgba(231, 234, 240, 0.18);
+        --border-strong: rgba(231, 234, 240, 0.34);
+        --focus-color: #86aee0;
+        --danger-color: #ff9090;
+        --danger-bg: #3b2024;
+        --danger-contrast: #ffffff;
+    }
+}
+
+
+/* ==========================================================================
+   HEADER UTILITY CONTROLS
+   ========================================================================== */
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 0 0 auto;
+}
+
+.language-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.language-selector label {
+    margin: 0;
+}
+
+
+/* ==========================================================================
+   THEME SWITCH
+   ========================================================================== */
+
+.theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+
+    padding: 0.35rem 0.65rem;
+
+    border: 1px solid var(--border-color);
+    border-radius: 0.4rem;
+
+    background: var(--card-bg);
+    color: var(--text-color);
+
+    font: inherit;
+    cursor: pointer;
+}
+
+.theme-toggle:hover {
+    background: var(--surface-hover);
+}
+
+#theme-toggle-icon {
+    font-size: 1.1em;
+    line-height: 1;
+}
+
+
+/* ==========================================================================
+   BASE PAGE
+   ========================================================================== */
+
+body {
+    margin: 0;
+    line-height: 1.35;
+    color: var(--text-color);
+    background: var(--page-bg);
+}
+
+.accounting-page h1 {
+    font-size: 1.55rem;
+}
+
+.accounting-page h2 {
+    font-size: 1.18rem;
+}
+
+.accounting-page h3 {
+    font-size: 1rem;
+}
+
+.accounting-page button,
+.accounting-page input,
+.accounting-page select,
+.accounting-page textarea {
+    font-size: 0.95rem;
+}
+
+.accounting-page .muted {
+    color: var(--text-muted);
+}
+
+.accounting-page .card {
+    margin: 0;
+    background: var(--card-bg);
+}
+
 .accounting-page {
     width: 100%;
     max-width: none;
     box-sizing: border-box;
+
     margin: 0;
-    padding: 1rem 1.5rem 2rem;
+    padding: 0.75rem 1rem 1.25rem;
 }
 
 .accounting-page *,
@@ -25,14 +212,22 @@
     box-sizing: border-box;
 }
 
+
+/* ==========================================================================
+   APPLICATION HEADER
+   ========================================================================== */
+
 .app-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1.5rem;
-    margin-bottom: 1.25rem;
-    padding-bottom: 0.85rem;
-    border-bottom: 1px solid rgba(127, 127, 127, 0.24);
+
+    gap: 0.9rem;
+
+    margin-bottom: 0.8rem;
+    padding-bottom: 0.55rem;
+
+    border-bottom: 1px solid var(--border-color);
 }
 
 .app-brand h1 {
@@ -47,58 +242,68 @@
 .view-nav {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
+
     gap: 0.4rem;
     padding: 0.25rem;
-    border: 1px solid rgba(127, 127, 127, 0.24);
+
+    border: 1px solid var(--border-color);
     border-radius: 0.6rem;
 }
 
 .view-nav-button {
     min-width: 7rem;
+
     border: 0;
     border-radius: 0.4rem;
+
     background: transparent;
 }
 
 .view-nav-button.is-active {
     font-weight: 700;
-    background: rgba(127, 127, 127, 0.16);
+    background: var(--surface-hover);
 }
 
 .app-view[hidden] {
     display: none !important;
 }
 
-/* Process ------------------------------------------------------------ */
+
+/* ==========================================================================
+   AP WORKSPACE
+   ========================================================================== */
 
 .process-workspace {
     display: grid;
     grid-template-columns: minmax(24rem, 38fr) minmax(30rem, 62fr);
     align-items: start;
-    gap: 1.25rem;
+
+    gap: 0.8rem;
 }
 
 .process-left-column,
 .input-workspace {
     min-width: 0;
+
     display: grid;
-    gap: 1.25rem;
+    gap: 0.8rem;
 }
 
 .process-right-column {
     position: sticky;
     top: 1rem;
+
     min-width: 0;
     width: 100%;
     height: calc(100vh - 2rem);
+
     align-self: start;
+
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
-    gap: 1.25rem;
-}
 
-.accounting-page .card {
-    margin: 0;
+    gap: 0.8rem;
 }
 
 .primary-card,
@@ -107,41 +312,47 @@
     scroll-margin-top: 1rem;
 }
 
-.section-heading,
-.source-image-heading-row {
+
+/* ==========================================================================
+   GENERIC SECTION HEADERS
+   ========================================================================== */
+
+.section-heading {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1rem;
+
+    gap: 0.75rem;
+    margin-bottom: 0.65rem;
 }
 
-.section-heading h2,
-.source-image-heading-row h2,
-.entries-heading h2 {
+.section-heading h2 {
     margin-top: 0;
 }
 
-.section-heading .muted,
-.source-image-heading-row .muted,
-.entries-heading .muted {
+.section-heading .muted {
     margin-bottom: 0;
 }
 
-.section-actions,
-.source-image-navigation {
+.section-actions {
     flex: 0 0 auto;
+
     display: flex;
     gap: 0.5rem;
+
     justify-content: flex-end;
 }
 
-/* Forms -------------------------------------------------------------- */
+
+/* ==========================================================================
+   FORMS
+   ========================================================================== */
 
 .form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.9rem 1rem;
+
+    gap: 0.65rem 0.75rem;
 }
 
 .form-grid > label {
@@ -152,6 +363,7 @@
 .form-grid > label:not(.checkbox-row) {
     display: flex;
     flex-direction: column;
+
     gap: 0.35rem;
 }
 
@@ -163,7 +375,7 @@
 }
 
 .form-grid textarea {
-    min-height: 6rem;
+    min-height: 4.5rem;
     resize: vertical;
 }
 
@@ -174,9 +386,10 @@
 }
 
 .form-section-title {
-    margin: 0.85rem 0 0;
-    padding-top: 0.9rem;
-    border-top: 1px solid rgba(127, 127, 127, 0.24);
+    margin: 0.6rem 0 0;
+    padding-top: 0.65rem;
+
+    border-top: 1px solid var(--border-color);
 }
 
 .form-section-title:first-of-type {
@@ -190,45 +403,109 @@
     justify-content: flex-start;
 }
 
-/* Source image ------------------------------------------------------- */
+
+/* ==========================================================================
+   AP SOURCE DOCUMENT VIEWER
+   ========================================================================== */
 
 .source-image-card {
     min-width: 0;
 }
 
+
+/* Keep the toolbar row reserved for PDF documents so switching between
+   image and PDF does not change the overall card geometry. */
+
 .source-image-tools {
     display: flex;
+    align-items: center;
+
     gap: 0.35rem;
+
+    height: 2.1rem;
+
     margin-bottom: 0.5rem;
 }
 
-.source-image-tools button { padding: 0.2rem 0.6rem; }
-.source-image-frame.is-pannable { cursor: grab; }
-.source-image-frame.is-dragging { cursor: grabbing; }
-.source-image-frame:focus-visible { outline: 2px solid #476e9e; }
+.source-image-tools[hidden] {
+    visibility: hidden;
+    pointer-events: none;
+}
 
-.source-image-frame {
-    display: grid;
-    place-items: center;
+.source-image-tools button {
+    padding: 0.2rem 0.6rem;
+}
+
+.source-image-frame.is-pannable {
+    cursor: grab;
+}
+
+.source-image-frame.is-dragging {
+    cursor: grabbing;
+}
+
+.source-image-frame:focus-visible {
+    outline: 2px solid var(--focus-color);
+}
+
+
+/* Image and PDF occupy one permanent physical display stage. */
+
+.source-document-stage {
+    position: relative;
+
     width: 100%;
-    height: 12rem;
-    min-height: 12rem;
-    padding: 0.5rem;
+
+    height: var(--document-viewer-height);
+
     overflow: hidden;
-    border: 1px solid rgba(127, 127, 127, 0.24);
+}
+
+
+/* AP image renderer */
+
+.source-document-stage .source-image-frame {
+    position: absolute;
+    inset: 0;
+
+    display: grid;
+    grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+    place-items: center;
+
+    width: 100%;
+    height: 100%;
+
+    margin: 0;
+    padding: 0.5rem;
+
+    overflow: hidden;
+
+    border: 1px solid var(--border-color);
     border-radius: 0.5rem;
-    background: rgba(127, 127, 127, 0.05);
+
+    background: var(--surface-muted);
+
+}
+
+.source-document-stage .source-image-frame[hidden] {
+    display: none;
 }
 
 .source-image-frame img {
     display: block;
-    max-width: 100%;
-    max-height: 100%;
+
     width: 100%;
     height: 100%;
+
+    min-width: 0;
     min-height: 0;
+
+    max-width: 100%;
+    max-height: 100%;
+
     object-fit: contain;
     transform-origin: center;
+
     user-select: none;
 }
 
@@ -236,54 +513,82 @@
     display: none;
 }
 
-tr.entry-row.is-selected { background: #e5edf5; }
-
 .source-image-empty {
     margin: 0;
+
     text-align: center;
     opacity: 0.65;
 }
 
-.source-image-meta {
-    display: flex;
-    gap: 0.45rem;
-    margin-top: 0.65rem;
-    overflow-wrap: anywhere;
+
+/* AP PDF renderer */
+
+.source-document-stage .source-document-pdf {
+    position: absolute;
+    inset: 0;
+
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    margin: 0;
+    padding: 0;
+
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+
+    background: var(--surface-muted);
+
 }
 
-/* Entries ------------------------------------------------------------ */
+.source-document-stage .source-document-pdf[hidden] {
+    display: none;
+}
+
+tr.entry-row.is-selected {
+    background: var(--surface-selected);
+}
+
+
+/* ==========================================================================
+   AP ENTRIES
+   ========================================================================== */
 
 .entries-card {
     min-height: 0;
+
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-}
 
-.entries-heading {
-    flex: 0 0 auto;
-    margin-bottom: 0.75rem;
+    overflow: hidden;
 }
 
 .entries-table-wrap {
     flex: 1 1 auto;
     min-height: 0;
+
     overflow: auto;
 }
 
 .entries-table {
     width: 100%;
     min-width: 42rem;
+
     margin: 0;
 }
 
 .entries-table thead th {
     position: sticky;
     top: 0;
+
     z-index: 2;
 }
 
-/* Input -------------------------------------------------------------- */
+
+/* ==========================================================================
+   NEW ENTRIES / INPUT
+   ========================================================================== */
 
 .input-workspace {
     width: min(100%, 78rem);
@@ -294,12 +599,14 @@ tr.entry-row.is-selected { background: #e5edf5; }
     width: 100%;
 }
 
-#json-paste-area,
-#contract-json-area {
-    min-height: 20rem;
-}
 
-/* AR invoice import -------------------------------------------------- */
+/* ==========================================================================
+   LEGACY AR INVOICE IMPORT
+
+   Retained intentionally while deprecated import templates/endpoints still
+   exist in the repository. It is not used by the active contract-based AR
+   recognition workflow.
+   ========================================================================== */
 
 .ar-invoice-import-card {
     min-width: 0;
@@ -308,7 +615,9 @@ tr.entry-row.is-selected { background: #e5edf5; }
 .ar-directory-meta {
     display: flex;
     align-items: baseline;
+
     gap: 0.75rem;
+
     margin-bottom: 0.9rem;
 }
 
@@ -321,9 +630,11 @@ tr.entry-row.is-selected { background: #e5edf5; }
 }
 
 .ar-file-browser {
-    border: 1px solid rgba(127, 127, 127, 0.24);
+    border: 1px solid var(--border-color);
     border-radius: 0.5rem;
-    background: rgba(127, 127, 127, 0.04);
+
+    background: var(--card-bg);
+
     overflow: hidden;
 }
 
@@ -331,27 +642,35 @@ tr.entry-row.is-selected { background: #e5edf5; }
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
+
+    gap: 0.75rem;
+
     padding: 0.65rem 0.8rem;
-    border-bottom: 1px solid rgba(127, 127, 127, 0.18);
+
+    border-bottom: 1px solid var(--border-color);
 }
 
 .ar-file-list {
     min-height: 5rem;
     max-height: 14rem;
+
     margin: 0;
     padding: 0.65rem 0.8rem 0.65rem 2rem;
+
     overflow: auto;
 }
 
 .ar-file-list li {
     margin: 0.25rem 0;
+
     overflow-wrap: anywhere;
 }
 
 .ar-import-status {
     min-height: 0;
+
     margin: 0.9rem 0 0;
+
     white-space: pre-wrap;
     overflow-wrap: anywhere;
 }
@@ -360,54 +679,644 @@ tr.entry-row.is-selected { background: #e5edf5; }
     display: none;
 }
 
-/* Responsive --------------------------------------------------------- */
-
-
 .ar-import-grid {
     display: grid;
     grid-template-columns: minmax(16rem, 0.8fr) minmax(32rem, 1.7fr);
-    gap: 1rem;
+
+    gap: 0.75rem;
+
     align-items: stretch;
 }
 
 .ar-db-browser {
     min-width: 0;
-    border: 1px solid rgba(127, 127, 127, 0.24);
+
+    border: 1px solid var(--border-color);
     border-radius: 0.5rem;
-    background: rgba(127, 127, 127, 0.04);
+
+    background: var(--card-bg);
+
     overflow: hidden;
 }
 
+
+/* ==========================================================================
+   AR DATABASE TABLES
+   ========================================================================== */
+
 .ar-db-table-wrap {
     max-height: 14rem;
+
     overflow: auto;
 }
 
 .ar-db-table {
     width: 100%;
+
     border-collapse: collapse;
+
     white-space: nowrap;
 }
 
 .ar-db-table th,
 .ar-db-table td {
     padding: 0.55rem 0.65rem;
+
     text-align: left;
-    border-bottom: 1px solid rgba(127, 127, 127, 0.14);
+
+    border-bottom: 1px solid var(--border-color);
 }
 
 .ar-db-table thead th {
     position: sticky;
     top: 0;
+
     z-index: 1;
-    background: var(--card-bg, Canvas);
+
+    background: var(--card-bg);
 }
+
+.ar-payment-status-open {
+    color: var(--status-open-color);
+    font-weight: 700;
+}
+
+.ar-payment-status-partially-paid {
+    color: var(--status-partial-color);
+    font-weight: 700;
+}
+
+.ar-payment-status-paid {
+    color: var(--status-paid-color);
+    font-weight: 700;
+}
+
+/* ==========================================================================
+   AR WORKSPACE
+   ========================================================================== */
+
+.ar-workspace {
+    display: grid;
+    grid-template-columns: minmax(24rem, 38fr) minmax(30rem, 62fr);
+    align-items: start;
+
+    gap: 0.8rem;
+}
+
+.ar-editor-column,
+.ar-records-column {
+    min-width: 0;
+}
+
+.ar-records-column {
+    position: sticky;
+    top: 1rem;
+
+    height: calc(100vh - 2rem);
+
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+
+    gap: 0.8rem;
+}
+
+.ar-source-card h2 {
+    margin: 0 0 0.65rem;
+}
+
+.ar-source-card .ar-file-list {
+    height: 8rem;
+    min-height: 0;
+}
+
+.ar-source-card .ar-import-status {
+    max-height: 5rem;
+
+    overflow: auto;
+
+    margin-bottom: 0;
+}
+
+.ar-source-card .ar-import-status:empty {
+    display: none;
+}
+
+.ar-invoices-card {
+    display: flex;
+    flex-direction: column;
+
+    min-height: 0;
+
+    overflow: hidden;
+    margin: 0;
+}
+
+.ar-invoices-card .ar-db-table-wrap {
+    flex: 1 1 auto;
+
+    min-height: 0;
+    max-height: none;
+
+    overflow: auto;
+}
+
+.ar-editor-actions,
+.ar-invoice-actions {
+    flex-wrap: wrap;
+}
+
+.ar-db-table tr[data-invoice-id] {
+    cursor: pointer;
+}
+
+.ar-db-table tr.is-selected {
+    background: var(--surface-selected);
+}
+
+
+/* ==========================================================================
+   DELETE ACTIONS
+   ========================================================================== */
+
+.ar-payment-delete,
+.ar-invoice-delete {
+    color: var(--danger-color);
+
+    border: 1px solid var(--danger-color);
+
+    background: var(--danger-bg);
+
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.ar-payment-delete:hover:not(:disabled),
+.ar-invoice-delete:hover:not(:disabled) {
+    color: var(--danger-contrast);
+    background: var(--danger-color);
+}
+
+.ar-payment-delete:disabled,
+.ar-invoice-delete:disabled {
+    opacity: 0.5;
+}
+
+
+/* ==========================================================================
+   SORTABLE TABLE HEADERS
+   ========================================================================== */
+
+.table-sort-button {
+    display: block;
+
+    width: 100%;
+
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+    color: inherit;
+
+    font: inherit;
+    font-weight: inherit;
+
+    text-align: left;
+
+    cursor: pointer;
+}
+
+.table-sort-button::after {
+    content: " ↕";
+    opacity: 0.45;
+}
+
+th[aria-sort="ascending"] .table-sort-button::after {
+    content: " ↑";
+    opacity: 1;
+}
+
+th[aria-sort="descending"] .table-sort-button::after {
+    content: " ↓";
+    opacity: 1;
+}
+
+
+/* ==========================================================================
+   EDITOR HEADER CONTROLS
+
+   Shared by Selected Entry Detail and Selected Outgoing Invoice.
+
+       Title / help text        Process Entry
+                                Unlock Editing
+                                Save | Cancel
+   ========================================================================== */
+
+.editor-control-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 1rem;
+
+    margin-bottom: 0.8rem;
+}
+
+.editor-control-copy {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.editor-control-copy h2 {
+    margin: 0;
+}
+
+.editor-control-copy .muted {
+    margin: 0.35rem 0 0;
+}
+
+.editor-action-stack {
+    flex: 0 0 12rem;
+
+    width: 12rem;
+
+    display: grid;
+
+    gap: 0.4rem;
+}
+
+.editor-action-stack > button {
+    width: 100%;
+}
+
+.editor-process-action {
+    font-weight: 700;
+
+    border-color: var(--focus-color);
+}
+
+.editor-save-cancel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    gap: 0.4rem;
+}
+
+.editor-save-cancel button {
+    width: 100%;
+    min-width: 0;
+}
+
+
+/* ==========================================================================
+   AR RIGHT COLUMN
+   PDF viewer on top, Outgoing Invoices below
+   ========================================================================== */
+
+.ar-document-column {
+    min-width: 0;
+
+    position: sticky;
+    top: 1rem;
+
+    height: calc(100vh - 2rem);
+
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 0.8rem;
+}
+
+
+/* --------------------------------------------------------------------------
+   AR PDF VIEWER
+
+   Keep this independent from the AP image/PDF stage.
+   Only the shared height variable is common.
+   -------------------------------------------------------------------------- */
+
+.ar-pdf-viewer {
+    position: relative;
+    height: var(--document-viewer-height);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background: var(--surface-muted);
+}
+
+#ar-source-pdf {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+#ar-source-pdf[hidden] {
+    display: none;
+}
+
+.ar-pdf-viewer .inspection-state {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0.5rem;
+}
+
+#ar-source-pdf-filename {
+    overflow-wrap: anywhere;
+}
+
+
+/* ==========================================================================
+   NEW ENTRIES TECHNICAL TOOLS
+   ========================================================================== */
+
+.new-entry-tools-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 0.8rem;
+}
+
+.new-entry-tool-panel {
+    min-width: 0;
+
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: span 4;
+
+    gap: 0.75rem;
+
+    padding: 0.75rem;
+}
+
+.new-entry-tool-panel h2 {
+    margin: 0;
+
+    font-size: 1.2rem;
+    line-height: 1.35;
+}
+
+.new-entry-tool-panel p {
+    margin: 0;
+}
+
+.new-entry-tool-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: start;
+
+    gap: 0.5rem;
+}
+
+.new-entry-tool-panel .json-paste-area {
+    display: block;
+
+    width: 100%;
+
+    min-width: 0;
+    min-height: 0;
+
+    height: 14rem;
+
+    margin: 0;
+    padding: 0.75rem;
+
+    border: 1px solid var(--border-strong);
+    border-radius: 0.35rem;
+
+    resize: vertical;
+}
+
+.new-entry-tool-contract .json-paste-area {
+    height: 16rem;
+}
+
+.new-entry-tool-panel textarea[readonly] {
+    background: var(--surface-muted);
+}
+
+#input-view .new-entry-status pre {
+    height: auto;
+    min-height: 0;
+
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+#input-view .new-entry-status pre:not(:empty) + pre:not(:empty) {
+    margin-top: 0.5rem;
+}
+
+#input-view .new-entry-status pre:empty,
+#input-view .new-entry-status:not(:has(pre:not(:empty))) {
+    display: none;
+}
+
+
+/* ==========================================================================
+   DOCUMENT INSPECTION PANELS
+
+   Shared layout for AP Source Document and AR Source PDF.
+   ========================================================================== */
+
+.inspection-card {
+    min-width: 0;
+}
+
+.inspection-heading-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 0.75rem;
+
+    margin-bottom: 0.5rem;
+}
+
+.inspection-heading-row h2 {
+    margin: 0;
+}
+
+.inspection-navigation {
+    flex: 0 0 auto;
+
+    display: flex;
+
+    gap: 0.4rem;
+}
+
+.inspection-file-row {
+    min-width: 0;
+    min-height: 2.1rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 0.75rem;
+
+    margin-bottom: 0.5rem;
+}
+
+.inspection-file-row code {
+    min-width: 0;
+    flex: 1 1 auto;
+
+    color: var(--text-muted);
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.inspection-open-button {
+    flex: 0 0 auto;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0.35rem 0.65rem;
+
+    border: 1px solid var(--border-strong);
+    border-radius: 0.35rem;
+
+    background: var(--card-bg);
+    color: var(--text-color);
+
+    font: inherit;
+
+    text-align: center;
+    text-decoration: none;
+
+    cursor: pointer;
+}
+
+.inspection-open-button:hover {
+    background: var(--surface-hover);
+}
+
+/* Reserve the link's space during loading/empty states without exposing it. */
+.inspection-open-button[hidden] {
+    visibility: hidden;
+}
+
+.inspection-state {
+    margin: 0 0 0.5rem;
+
+    color: var(--text-muted);
+}
+
+
+/* ==========================================================================
+   RECORD LIST HEADERS
+
+   Shared by AP Entries and AR Outgoing Invoices.
+   ========================================================================== */
+
+.records-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 1rem;
+
+    margin: 0 0 0.75rem;
+    padding: 0;
+
+    border: 0;
+}
+
+.records-heading-copy {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.records-heading-copy h2 {
+    margin: 0;
+    padding: 0;
+
+    border: 0;
+}
+
+.records-heading-copy .muted {
+    margin: 0.3rem 0 0;
+}
+
+.records-heading-actions {
+    flex: 0 0 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 0.4rem;
+
+    margin: 0;
+    padding: 0;
+
+    border: 0;
+}
+
+.records-heading-actions button {
+    white-space: nowrap;
+}
+
+
+/* ==========================================================================
+   SHARED COMPACT / THEME RULES
+   ========================================================================== */
+
+.accounting-page input,
+.accounting-page select,
+.accounting-page textarea,
+.accounting-page button {
+    color: var(--text-color);
+}
+
+.accounting-page input,
+.accounting-page select,
+.accounting-page textarea {
+    background: var(--card-bg);
+    border-color: var(--border-strong);
+}
+
+.accounting-page button:not(.ar-payment-delete):not(.ar-invoice-delete) {
+    padding: 0.35rem 0.65rem;
+}
+
+.accounting-page table {
+    color: var(--text-color);
+}
+
+.accounting-page th,
+.accounting-page td {
+    font-size: 0.93rem;
+}
+
+
+/* ==========================================================================
+   RESPONSIVE — 1050px
+   ========================================================================== */
 
 @media (max-width: 1050px) {
     .ar-import-grid {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* ==========================================================================
+   RESPONSIVE — 900px
+   ========================================================================== */
 
 @media (max-width: 900px) {
     .process-workspace {
@@ -416,9 +1325,11 @@ tr.entry-row.is-selected { background: #e5edf5; }
 
     .process-right-column {
         position: static;
+
         grid-row: 1;
-        height: auto;
         grid-template-rows: auto auto;
+
+        height: auto;
     }
 
     .entries-card {
@@ -429,13 +1340,46 @@ tr.entry-row.is-selected { background: #e5edf5; }
         max-height: 30rem;
     }
 
-    .source-image-frame {
-        height: 10rem;
-        min-height: 10rem;
+    .ar-workspace {
+        grid-template-columns: minmax(0, 1fr);
     }
+
+    .ar-records-column {
+        position: static;
+
+        height: auto;
+
+        grid-template-rows: auto auto;
+    }
+
+    .ar-invoices-card .ar-db-table-wrap {
+        max-height: 30rem;
+        flex: 1 1 auto;
+    }
+
+    .ar-document-column {
+        position: static;
+
+        height: auto;
+
+        grid-template-rows: auto auto;
+    }
+
 }
 
+
+/* ==========================================================================
+   RESPONSIVE — 720px
+   ========================================================================== */
+
 @media (max-width: 720px) {
+    .header-controls {
+        width: 100%;
+
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
     .accounting-page {
         padding: 0.75rem;
     }
@@ -463,74 +1407,46 @@ tr.entry-row.is-selected { background: #e5edf5; }
         grid-column: auto;
     }
 
-    .section-heading,
-    .source-image-heading-row {
+    .section-heading {
         display: block;
     }
 
-    .section-actions,
-    .source-image-navigation {
+    .section-actions {
         justify-content: flex-start;
+
         margin-top: 0.75rem;
     }
 
-    .source-image-frame {
-        height: 9rem;
-        min-height: 9rem;
+    .editor-control-header {
+        display: block;
+    }
+
+    .editor-action-stack {
+        width: 100%;
+
+        margin-top: 0.75rem;
+    }
+
+    .new-entry-tools-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .inspection-heading-row {
+        align-items: flex-start;
+    }
+
+    .inspection-file-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .records-heading {
+        gap: 0.5rem;
+    }
+
+    .records-heading-actions {
+        flex: 0 1 auto;
+        max-width: 60%;
+        flex-wrap: wrap;
     }
 }
-
-/* Accounts Receivable: same desktop proportions as AP, isolated domain IDs. */
-.ar-workspace {
-    display: grid;
-    grid-template-columns: minmax(24rem, 38fr) minmax(30rem, 62fr);
-    align-items: start;
-    gap: 1.25rem;
-}
-.ar-editor-column, .ar-records-column { min-width: 0; }
-.ar-records-column {
-    position: sticky;
-    top: 1rem;
-    height: calc(100vh - 2rem);
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
-    gap: 1.25rem;
-}
-.ar-source-card h2, .ar-invoices-card h2 { margin: 0 0 0.65rem; }
-.ar-source-card .ar-file-list { height: 8rem; min-height: 0; }
-.ar-source-card .ar-import-status { max-height: 5rem; overflow: auto; margin-bottom: 0; }
-.ar-source-card .ar-import-status:empty { display: none; }
-.ar-invoices-card { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-.ar-invoices-card .ar-db-table-wrap { flex: 1; min-height: 0; max-height: none; overflow: auto; }
-.ar-invoices-card .ar-db-table thead th { position: sticky; top: 0; background: white; z-index: 1; }
-.ar-editor-actions, .ar-invoice-navigation, .ar-invoice-actions { flex-wrap: wrap; }
-.ar-db-table tr[data-invoice-id] { cursor: pointer; }
-.ar-db-table tr.is-selected { background: #e5edf5; }
-.ar-pdf-button { background: transparent; border: 0; padding: 0; text-align: left; overflow-wrap: anywhere; }
-.ar-pdf-button.is-selected { font-weight: bold; }
-.ar-payment-delete { color: #a11717; border: 1px solid #a11717; background: #fff1f1; font-weight: bold; white-space: nowrap; }
-.ar-payment-delete:hover:not(:disabled) { color: white; background: #a11717; }
-.ar-payment-delete:disabled { opacity: 0.5; }
-.view-nav { flex-wrap: wrap; }
-@media (max-width: 900px) {
-    .ar-workspace { grid-template-columns: minmax(0, 1fr); }
-    .ar-records-column { position: static; height: auto; grid-template-rows: auto auto; }
-    .ar-invoices-card .ar-db-table-wrap { max-height: 30rem; flex: auto; }
-}
-
-/* Native header buttons support mouse, Enter, and Space without changing table geometry. */
-.table-sort-button {
-    display: block;
-    width: 100%;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    font-weight: inherit;
-    text-align: left;
-    cursor: pointer;
-}
-.table-sort-button::after { content: " ↕"; opacity: 0.45; }
-th[aria-sort="ascending"] .table-sort-button::after { content: " ↑"; opacity: 1; }
-th[aria-sort="descending"] .table-sort-button::after { content: " ↓"; opacity: 1; }

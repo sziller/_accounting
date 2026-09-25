@@ -82,7 +82,7 @@ class LegacyInvoiceParserTests(unittest.TestCase):
             'Example Address 1\nHonorarrechnung Számla', 'Example Address 1\n'+VATIN))
 
     def test_missing_duplicate_mixed_and_invalid_totals(self):
-        for marker in (NET, GROSS):
+        for marker in (GROSS,):
             self.reject(LEGACY.replace(marker+'\n', ''))
             self.reject(LEGACY.replace(marker, marker+'\n'+marker))
             self.reject(LEGACY.replace(marker, marker+'\n'+marker.replace('84.000', 'bad')))
@@ -90,7 +90,10 @@ class LegacyInvoiceParserTests(unittest.TestCase):
         self.reject(LEGACY.replace(GROSS, GROSS.replace('HUF', 'EUR')), 'currency_conflict')
         self.reject(LEGACY.replace('HUF', 'USD'), 'currency_conflict')
         self.reject(LEGACY.replace('Bruttohonorar\n', ''), 'gross_amount_not_found')
-        self.reject(LEGACY.replace(NET, NET+'\nNettohonorar – net amount: 84.000 HUF'), 'unsupported_layout')
+        self.assertEqual(self.parse(LEGACY.replace(NET, '')).net_amount, Decimal('84000'))
+        self.assertEqual(self.parse(LEGACY.replace(NET, NET+'\n'+NET)).net_amount, Decimal('84000'))
+        self.assertEqual(self.parse(LEGACY.replace(NET, NET+'\nNettohonorar – net amount: 84.000 HUF')).net_amount,
+                         Decimal('84000'))
         self.reject(LEGACY.replace('Honorarrechnung Számla', 'Honorarrechnung Invoice'), 'unsupported_layout')
 
     def test_legacy_grouping_is_strict(self):

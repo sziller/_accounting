@@ -1,44 +1,125 @@
 <section class="card ar-invoices-card">
-    <div class="ar-file-browser-heading">
-        <h2 data-i18n="ar.outgoingInvoices">Outgoing Invoices</h2>
-        <span class="muted" id="ar-invoice-db-count">Loading…</span>
+
+    <div class="records-heading">
+        <div class="records-heading-copy">
+            <h2 data-i18n="ar.outgoingInvoices">
+                Outgoing Invoices
+            </h2>
+
+            <p class="muted">
+                Browse and select accounts receivable invoices.
+                <span id="ar-invoice-db-count">Loading…</span>
+            </p>
+        </div>
+
+        <div class="records-heading-actions">
+            <button
+                    data-i18n="ar.previousInvoice"
+                    disabled
+                    id="previous-ar-invoice"
+                    type="button">
+                Previous Invoice
+            </button>
+
+            <button
+                    data-i18n="ar.nextInvoice"
+                    disabled
+                    id="next-ar-invoice"
+                    type="button">
+                Next Invoice
+            </button>
+
+            <button
+                    data-i18n="common.refresh"
+                    id="refresh-ar-invoices"
+                    type="button">
+                Refresh
+            </button>
+        </div>
     </div>
 
-    <div class="json-actions ar-invoice-navigation">
-        <button data-i18n="ar.previousInvoice" disabled id="previous-ar-invoice" type="button">
-            Previous Invoice
-        </button>
-
-        <button data-i18n="ar.nextInvoice" disabled id="next-ar-invoice" type="button">
-            Next Invoice
-        </button>
-    </div>
-
-    <div class="ar-db-table-wrap" aria-live="polite">
+    <div aria-live="polite" class="ar-db-table-wrap">
         <table class="ar-db-table">
             <thead>
-                <tr>
-                    <th data-i18n="ar.field.invoiceNumber">Invoice Number</th>
-                    <th data-i18n="ar.field.invoiceDate">Invoice Date</th>
-                    <th data-i18n="ar.column.customer">Customer</th>
-                    <th data-i18n="ar.field.currencyOriginal">Original Currency</th>
-                    <th data-i18n="ar.column.gross">Original Gross</th>
-                    <th data-i18n="ar.column.paid">Paid (original)</th>
-                    <th data-i18n="ar.column.outstanding">Outstanding (original)</th>
-                    <th data-i18n="common.status">Status</th>
-                    <th data-i18n="ar.field.pdfFilename">PDF Filename</th>
-                    <th data-i18n="ar.field.currencyCommon">Common Currency</th>
-                    <th data-i18n="ar.field.amountCommon">Common Amount</th>
-                </tr>
+            <tr>
+                <th data-column-key="invoice_number"
+                    data-i18n="ar.field.invoiceNumber">
+                    Invoice Number
+                </th>
+
+                <th data-column-key="invoice_date"
+                    data-i18n="ar.field.invoiceDate">
+                    Invoice Date
+                </th>
+
+                <th data-column-key="customer_name"
+                    data-i18n="ar.column.customer">
+                    Customer
+                </th>
+
+                <th data-column-key="currency_original"
+                    data-i18n="ar.field.currencyOriginal">
+                    Original Currency
+                </th>
+
+                <th data-column-key="amount_original"
+                    data-i18n="ar.column.gross">
+                    Original Gross
+                </th>
+
+                <th data-column-key="paid_amount"
+                    data-i18n="ar.column.paid">
+                    Paid (original)
+                </th>
+
+                <th data-column-key="outstanding_amount"
+                    data-i18n="ar.column.outstanding">
+                    Outstanding (original)
+                </th>
+
+                <th data-column-key="payment_status"
+                    data-i18n="common.status">
+                    Status
+                </th>
+
+                <th data-column-key="pdf_filename"
+                    data-i18n="ar.field.pdfFilename">
+                    PDF Filename
+                </th>
+
+                <th data-column-key="currency_common"
+                    data-i18n="ar.field.currencyCommon">
+                    Common Currency
+                </th>
+
+                <th data-column-key="amount_common"
+                    data-i18n="ar.field.amountCommon">
+                    Common Amount
+                </th>
+
+                <th
+                        data-column-fixed="true"
+                        data-i18n="ar.deleteAction">
+                    DELETE / ENTFERNEN
+                </th>
+            </tr>
             </thead>
 
             <tbody id="ar-invoice-db-body">
-                <tr>
-                    <td data-i18n="ar.loadingInvoices" class="muted" colspan="11">
-                        Loading outgoing invoices…
-                    </td>
-                </tr>
+            <tr>
+                <td
+                        class="muted"
+                        colspan="12"
+                        data-i18n="ar.loadingInvoices">
+                    Loading outgoing invoices…
+                </td>
+            </tr>
             </tbody>
         </table>
     </div>
+
+    <pre
+            aria-live="polite"
+            id="ar-invoice-delete-status"></pre>
+
 </section>

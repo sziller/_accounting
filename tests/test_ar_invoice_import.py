@@ -56,7 +56,7 @@ class ArInvoiceImportTests(unittest.TestCase):
         temporary = TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         self.directory = Path(temporary.name)
-        setting = patch.object(config, "AR_INVOICE_PDF_DIRECTORY", self.directory)
+        setting = patch.object(config, "AR_SOURCE_DOCUMENT_DIRECTORY", self.directory)
         setting.start()
         self.addCleanup(setting.stop)
         self.factory = sessionmaker(bind=self.engine)
@@ -188,7 +188,7 @@ class ArInvoiceImportTests(unittest.TestCase):
         status, again = self.request("POST", "outgoing-invoices/process-directory")
         self.assertEqual(status, 200)
         self.assertEqual(again["already_imported"], 1)
-        with patch.object(config, "AR_INVOICE_PDF_DIRECTORY", self.directory / "absent"):
+        with patch.object(config, "AR_SOURCE_DOCUMENT_DIRECTORY", self.directory / "absent"):
             self.assertEqual(self.request("POST", "outgoing-invoices/process-directory")[0], 400)
 
     def test_concurrent_imports_are_idempotent(self):
@@ -217,7 +217,7 @@ class ArInvoiceImportTests(unittest.TestCase):
 
     def test_source_files_missing_empty_and_unreadable(self):
         self.assertEqual(self.request("GET", "outgoing-invoices/source-files")[1]["files"], [])
-        with patch.object(config, "AR_INVOICE_PDF_DIRECTORY", self.directory / "missing"):
+        with patch.object(config, "AR_SOURCE_DOCUMENT_DIRECTORY", self.directory / "missing"):
             self.assertEqual(self.request("GET", "outgoing-invoices/source-files"),
                              (200, {"directory": "missing", "files": []}))
         with patch.object(Path, "iterdir", side_effect=PermissionError("private path")):

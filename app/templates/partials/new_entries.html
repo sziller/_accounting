@@ -4,6 +4,7 @@
         aria-labelledby="show-input-view"
         hidden>
 
+    <h2 data-i18n="nav.newEntries">New Entries</h2>
     <div class="input-workspace">
         <section class="card primary-card">
             <h2 data-i18n="newEntries.manualTitle">Manual New Entry</h2>
@@ -87,75 +88,36 @@
                 </div>
             </form>
 
+        </section>
+        <div class="new-entry-status" role="status" aria-live="polite">
             <pre id="message"></pre>
-        </section>
-
-        <section class="card utility-card">
-            <h2 data-i18n="newEntries.jsonTitle">Paste Entry JSON / Batch JSON</h2>
-
-            <p class="muted">
-                <span data-i18n="newEntries.jsonHelpBefore">Paste either one entry object, a list of entry objects, or a batch object shaped as</span>
-                <code>{ "entries": [...] }</code><span data-i18n="newEntries.jsonHelpAfter">. The frontend normalizes it and submits it to the batch endpoint.</span>
-            </p>
-
-            <div class="json-actions">
-                <button data-i18n="newEntries.loadExample" id="load-example-json" type="button">
-                    Load Example JSON
-                </button>
-
-                <button data-i18n="newEntries.submitJson" id="submit-json" type="button">
-                    Submit JSON
-                </button>
-            </div>
-
-            <textarea
-                    class="json-paste-area"
-                    id="json-paste-area"
-                    placeholder='{
-  "entry_type": "expense",
-  "category_code": "buro",
-  "tax_scope": "domestic",
-  "counterparty_name": "Example GmbH",
-  "payment_method": "bank_transfer",
-  "payment_date": "2026-05-25",
-  "has_invoice": true,
-  "invoice_number": "RE-2026-001",
-  "invoice_date": "2026-05-25",
-  "amount_original": "123.45",
-  "currency_original": "EUR",
-  "remarks": "Manual JSON paste.",
-  "tags": ["manual-json"],
-  "source_filename": "IMG_4821.JPG"
-}'
-                    spellcheck="false"></textarea>
-        </section>
-
-        <section class="card utility-card">
-            <h2 data-i18n="newEntries.contractHeading">AI Invoice Recognition Contract</h2>
-
-            <p class="muted" data-i18n="newEntries.contractHelp">
-                Fetch the current dynamic JSON contract for invoice recognition/formalization.
-                Give this contract to the recognizer instance so it knows exactly which fields,
-                allowed values, and example payload the accounting backend currently expects.
-            </p>
-
-            <div class="json-actions">
-                <button data-i18n="newEntries.fetchCurrentContract" id="fetch-contract-json" type="button">
-                    Fetch Current Contract
-                </button>
-
-                <button data-i18n="newEntries.copyContractJson" id="copy-contract-json" type="button">
-                    Copy Contract JSON
-                </button>
-            </div>
-
-            <textarea
-                    class="json-paste-area"
-                    id="contract-json-area"
-                    data-i18n-placeholder="newEntries.contractPlaceholder"
-                    placeholder="Click 'Fetch Current Contract' to load the dynamic create-entry schema."
-                    readonly
-                    spellcheck="false"></textarea>
-        </section>
+            <pre id="ar-json-status"></pre>
+        </div>
+        <div class="new-entry-tools-grid">
+            <section class="card new-entry-tool-panel new-entry-tool-batch" aria-labelledby="json-paste-area-title">
+                <h2 id="json-paste-area-title" data-i18n="newEntries.jsonTitle">Entry JSON Import</h2>
+                <p class="muted" data-i18n="newEntries.jsonHelp">Paste one entry, a list of entries, or an { "entries": [...] } batch. Submit sends the records to the bookkeeping backend.</p>
+                <div class="new-entry-tool-actions">
+                    <button id="load-example-json" data-i18n="newEntries.loadExample" type="button">Load Example</button>
+                    <button id="submit-json" data-i18n="newEntries.submitJson" type="button">Submit</button>
+                </div>
+                <textarea id="json-paste-area" class="json-paste-area" aria-labelledby="json-paste-area-title"
+                          data-i18n-placeholder="newEntries.jsonPlaceholder" placeholder="Paste entry or batch JSON here…"
+                          spellcheck="false"></textarea>
+            </section>
+            {% include "partials/ar/new_entries.html" %}
+            <section class="card new-entry-tool-panel new-entry-tool-contract" aria-labelledby="contract-json-area-title">
+                <h2 id="contract-json-area-title" data-i18n="newEntries.contractHeading">Entry Recognition Contract</h2>
+                <p class="muted" data-i18n="newEntries.contractHelp">Fetch the current fields, allowed values and examples for entry recognition. This read-only contract is support material: copy it to your external recognition assistant with the source documents.</p>
+                <div class="new-entry-tool-actions">
+                    <button id="fetch-contract-json" data-i18n="newEntries.fetchCurrentContract" type="button">Fetch</button>
+                    <button id="copy-contract-json" data-i18n="newEntries.copyContractJson" type="button">Copy</button>
+                </div>
+                <textarea id="contract-json-area" class="json-paste-area" aria-labelledby="contract-json-area-title"
+                          data-i18n-placeholder="newEntries.contractPlaceholder" placeholder="Fetch the current entry recognition contract to display it here."
+                          readonly spellcheck="false"></textarea>
+            </section>
+            {% include "partials/ar/new_entry_contract.html" %}
+        </div>
     </div>
 </section>

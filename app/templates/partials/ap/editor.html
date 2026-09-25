@@ -1,6 +1,6 @@
 <section class="card primary-card">
-    <div class="section-heading">
-        <div>
+    <div class="editor-control-header">
+        <div class="editor-control-copy">
             <h2 data-i18n="ap.selectedEntry">
                 Selected Entry Detail
             </h2>
@@ -13,7 +13,16 @@
             </p>
         </div>
 
-        <div class="json-actions section-actions">
+        <div class="editor-action-stack">
+            <button
+                    class="editor-process-action"
+                    disabled
+                    id="process-entry"
+                    type="button"
+                    data-i18n="ap.processEntry">
+                Process Entry
+            </button>
+
             <button
                     disabled
                     id="unlock-entry-edit"
@@ -22,32 +31,24 @@
                 Unlock Editing
             </button>
 
-            <button
-                    disabled
-                    id="save-entry-edit"
-                    type="button"
-                    data-i18n="common.save">
-                Save Changes
-            </button>
+            <div class="editor-save-cancel">
+                <button
+                        disabled
+                        id="save-entry-edit"
+                        type="button"
+                        data-i18n="common.save">
+                    Save Changes
+                </button>
 
-            <button
-                    disabled
-                    id="cancel-entry-edit"
-                    type="button"
-                    data-i18n="common.cancel">
-                Cancel
-            </button>
+                <button
+                        disabled
+                        id="cancel-entry-edit"
+                        type="button"
+                        data-i18n="common.cancel">
+                    Cancel
+                </button>
+            </div>
         </div>
-    </div>
-
-    <div class="json-actions">
-        <button
-                disabled
-                id="process-entry"
-                type="button"
-                data-i18n="ap.processEntry">
-            Process Entry
-        </button>
     </div>
 
     <form class="detail-form form-grid" id="entry-detail-form">

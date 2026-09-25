@@ -20,7 +20,7 @@ class SourceImageTests(unittest.TestCase):
         self.root = Path(temporary.name)
         self.directory = self.root / "source_images"
         self.directory.mkdir()
-        setting = patch.object(config, "AP_SOURCE_IMAGE_DIRECTORY", self.directory)
+        setting = patch.object(config, "AP_SOURCE_DOCUMENT_DIRECTORY", self.directory)
         setting.start()
         self.addCleanup(setting.stop)
         self.app = FastAPI()
@@ -32,7 +32,7 @@ class SourceImageTests(unittest.TestCase):
     def request(self, encoded_filename: str) -> tuple[int, dict, bytes]:
         # Exercise routing and FileResponse through ASGI without an HTTP client
         # dependency or main.py's database/network startup side effects.
-        raw_path = f"/acct/v0/source-images/{encoded_filename}"
+        raw_path = f"/acct/v0/source-documents/{encoded_filename}"
         messages = []
 
         async def receive():

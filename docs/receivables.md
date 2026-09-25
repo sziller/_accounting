@@ -65,17 +65,16 @@ All paths have the prefix `/acct/v0`:
 | Methods | Path |
 | --- | --- |
 | GET, POST | `/outgoing-invoices` |
-| GET, PATCH | `/outgoing-invoices/{id}` |
+| GET, PATCH, DELETE | `/outgoing-invoices/{id}` |
 | GET, POST | `/incoming-payments` |
 | GET, PATCH, DELETE | `/incoming-payments/{id}` |
 | POST | `/invoice-payment-allocations` |
 | DELETE | `/invoice-payment-allocations/{id}` |
 
-POST returns 201, GET/PATCH 200, payment/allocation DELETE 204. Invalid schema or merged
+POST returns 201, GET/PATCH 200, invoice/payment/allocation DELETE 204. Invalid schema or merged
 PATCH data returns 422; missing IDs return 404; invalid allocation/update business
 rules return 400; duplicate invoice numbers/database conflicts return 409. A
-SQLite lock timeout returns 503 with a retry message. There is no invoice DELETE
-endpoint. Payment deletion removes that payment and all its allocations, leaving
+SQLite lock timeout returns 503 with a retry message. Payment deletion removes that payment and all its allocations, leaving
 every invoice and every other payment's allocations intact. Allocation removal
 alone does not delete its invoice/payment; no reconciliation audit log exists.
 
@@ -86,6 +85,30 @@ lists are fetched before either is published; selection and allocation controls
 are updated from those facts. If either refresh fails, both datasets and editors
 are cleared with an error; Refresh Payments retries both lists without repeating
 the DELETE.
+
+Outgoing invoice deletion explicitly removes only its allocations, flushes them,
+then deletes the invoice in the same `BEGIN IMMEDIATE` transaction with one commit.
+Payments remain, with their available amounts derived from remaining allocations.
+The current schema has no FK, junction, or explicit link between outgoing invoices
+and `accounting_entries`/legacy Spending. Accounting invoice-number metadata is
+independent and is never cleared or used as an implicit relationship. There is
+therefore no accounting unlink step or affected AP relationship display to refresh.
+
+Invoice rows append a non-sortable `DELETE / ENTFERNEN` action using the payment
+delete styling. EN/DE/HU translations preserve that exact action label. Native
+confirmation explains allocation removal when present. Failed DELETE requests
+preserve the row and editor draft. Successful deletion uses the coordinated AR
+refresh, updating payment availability and clearing a deleted invoice's editor,
+recognition, PDF viewer, and navigation state. If either list fails to refresh,
+both datasets are cleared; Refresh on the invoice list retries without deleting
+again. Deleting an unselected invoice preserves the selected invoice and its draft.
+
+Deletion never scans, validates, reads, renames, or removes archived PDFs, even
+when source metadata exists or the archive/data directory is missing. Invoice
+source metadata disappears with the DB row. Recognition-contract creation may
+recreate the invoice under the normal uniqueness rules. Legacy `source-files`
+and `process-directory` endpoints remain deprecated and unused by deletion; their
+parser/import infrastructure is intentionally retained for separate cleanup.
 
 Create/update/read schemas are `OutgoingInvoice{Create,Update,Read}Schema` and
 `IncomingPayment{Create,Update,Read}Schema`. Allocations have
@@ -153,7 +176,7 @@ these three missing tables to an existing populated database without changing
 existing tables or data. It is repeatable, but does not alter already-existing
 columns/constraints; future schema changes will need a separate strategy.
 
-`AR_INVOICE_PDF_DIRECTORY = DATA_DIR / "AR_invoice_pdf"` in
+`AR_SOURCE_DOCUMENT_DIRECTORY = DATA_DIR / "AR_source_files"` in
 `app/core/config.py` names the outgoing source archive. Explicit deterministic
 directory import is documented in `outgoing_invoice_pdf_import.md`. No PDF serving,
 payment matching, FX settlement, frontend changes, or AP recognition changes exist.

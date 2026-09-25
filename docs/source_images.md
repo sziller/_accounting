@@ -1,11 +1,11 @@
 # Source images
 
-Set `AP_SOURCE_IMAGE_DIRECTORY` in `app/core/config.py` to the directory containing
-the original JPEG documents. The default is `PROJECT_ROOT / "data" / "AP_source_images"`.
+Set `AP_SOURCE_DOCUMENT_DIRECTORY` in `app/core/config.py` to the directory containing
+the original JPEG documents. The default is `PROJECT_ROOT / "data" / "AP_source_files"`.
 Place files there using their exact stored `source_filename`; the API neither
 creates the directory nor copies, renames, or converts images.
 
-`GET /acct/v0/source-images/{filename}` returns a `FileResponse` with media type
+`GET /acct/v0/source-documents/{filename}` returns a `FileResponse` with media type
 `image/jpeg`. Only `.jpg` and `.jpeg` extensions are accepted, case-insensitively;
 the filename itself is preserved exactly. This is extension validation, not image
 content decoding. Unsupported extensions return 415. Invalid basenames return
@@ -21,7 +21,7 @@ the optional `source_filename` field. No schema change is needed.
 For a non-null source filename, the future frontend should use:
 
 ```javascript
-const url = `/acct/v0/source-images/${encodeURIComponent(entry.source_filename)}`;
+const url = `/acct/v0/source-documents/${encodeURIComponent(entry.source_filename)}`;
 ```
 
 No frontend behavior is changed by this backend addition.
